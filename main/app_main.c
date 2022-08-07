@@ -19,6 +19,8 @@
 #include "ds_system_data.h"
 #include "ds_nvs.h"
 
+#include "ds_wifi_ap.h"
+
 #define CHIP_NAME "ESP32"
 
 static const char *TAG = "MAIN APP";
@@ -65,6 +67,8 @@ void app_main(void)
     ds_nvs_init();
     ds_nvs_save_wifi_info();
     ds_nvs_read_wifi_info();
+
+    ds_wifi_ap_start();
 
     xTaskCreate(test_task_example, "test_task_example", 2048, NULL, 10, NULL);
 
