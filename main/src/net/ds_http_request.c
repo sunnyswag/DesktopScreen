@@ -442,20 +442,21 @@ void ds_http_set_type(HTTP_GET_TYPE_E type){
 static void http_get_task(void *pvParameters)
 {
     while(1) {
-        HTTP_GET_EVENT_T evt;
-        xQueueReceive(http_get_event_queue, &evt, portMAX_DELAY);
-        ESP_LOGI(TAG, "http_get_task %d",evt.type);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        if(evt.type == HTTP_GET_TIME){
-            http_time_get();
-        }else if(evt.type == HTTP_GET_WEATHER){
-            http_weather_get();
-        }else if(evt.type == HTTP_GET_FANS){
-            http_fans_get();
-        }else if(evt.type == HTTP_GET_CITY){
-            http_city_get();
-        }
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        http_fans_get();
+        // HTTP_GET_EVENT_T evt;
+        // xQueueReceive(http_get_event_queue, &evt, portMAX_DELAY);
+        // ESP_LOGI(TAG, "http_get_task %d",evt.type);
+        // vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // if(evt.type == HTTP_GET_TIME){
+        //     http_time_get();
+        // }else if(evt.type == HTTP_GET_WEATHER){
+        //     http_weather_get();
+        // }else if(evt.type == HTTP_GET_FANS){
+        //     http_fans_get();
+        // }else if(evt.type == HTTP_GET_CITY){
+        //     http_city_get();
+        // }
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
 
     }
 }
