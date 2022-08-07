@@ -13,11 +13,16 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
+
 
 #include "ds_timer.h"
 #include "ds_spiffs.h"
 #include "ds_system_data.h"
 #include "ds_nvs.h"
+
+#include "ds_wifi_ap.h"
+#include "ds_http_server.h"
 
 #define CHIP_NAME "ESP32"
 
@@ -53,18 +58,27 @@ void app_main(void)
 
     ESP_LOGI(TAG, "system init V1.1");
 
-    ds_timer_init();
+    ds_system_data_init();
 
-    init_spiffs();
-    ds_spiffs_test();
-    ds_spiffs_deinit();
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    char *ssid="leo";
-    char *psw="123456789";
-    set_system_data_wifi_info(ssid,strlen(ssid),psw,strlen(psw));
-    ds_nvs_init();
-    ds_nvs_save_wifi_info();
-    ds_nvs_read_wifi_info();
+    // ds_timer_init();
+
+    // init_spiffs();
+    // ds_spiffs_test();
+    // ds_spiffs_deinit();
+
+    // char *ssid="leo";
+    // char *psw="123456789";
+    // set_system_data_wifi_info(ssid,strlen(ssid),psw,strlen(psw));
+    // ds_nvs_init();
+    // ds_nvs_save_wifi_info();
+    // ds_nvs_read_wifi_info();
+
+    ds_wifi_ap_start();
+    ds_http_server_init();
 
     xTaskCreate(test_task_example, "test_task_example", 2048, NULL, 10, NULL);
 
