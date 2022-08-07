@@ -13,8 +13,11 @@
 #include "freertos/queue.h"
 #include "driver/periph_ctrl.h"
 #include "driver/timer.h"
+#include "esp_log.h"
 
 #include "ds_timer.h"
+
+static const char *TAG = "TIMER APP";
 
 #define TIMER_DIVIDER         16  //  Hardware timer clock divider
 #define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER/1000)  // convert counter value to ms seconds
@@ -112,6 +115,7 @@ static void timer_example_evt_task(void *arg)
         //1s计算一次 
         if(g_timer_event.timer_second_count >= 100){
             g_timer_event.timer_second_count = 0;
+            ESP_LOGI(TAG, "1s run ");
         }
     }
 }
