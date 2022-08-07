@@ -80,8 +80,8 @@ static void count_position_ft6336(TP_POSITION_T *position){
 				position->x = gTPS.x[0];
 				position->y = gTPS.y[0];
 				/******调试使用****/		
-                // printf("触摸点个数=%d\r\n",gTPS.touch_count);	//FT6336U最多支持两点触控
-                // printf("x0:%d,y0:%d\r\n",gTPS.x[0],gTPS.y[0]);
+                printf("触摸点个数=%d\r\n",gTPS.touch_count);	//FT6336U最多支持两点触控
+                printf("x0:%d,y0:%d\r\n",gTPS.x[0],gTPS.y[0]);
 				return;
 			}
 			break;
@@ -97,9 +97,9 @@ static void count_position_ft6336(TP_POSITION_T *position){
 				gTPS.x[1]=gTPS.x[1]*152/200; 
 				gTPS.y[1]=gTPS.y[1]*152/200;	
 				/******调试使用****/
-				// printf("触摸点个数：:%d\r\n",gTPS.touch_count);	//FT6336U最多支持两点触控
-				// printf("x0:%d,y0:%d\r\n",gTPS.x[0],gTPS.y[0]);
-				// printf("x1:%d,y1:%d\r\n",gTPS.x[1],gTPS.y[1]);
+				printf("触摸点个数：:%d\r\n",gTPS.touch_count);	//FT6336U最多支持两点触控
+				printf("x0:%d,y0:%d\r\n",gTPS.x[0],gTPS.y[0]);
+				printf("x1:%d,y1:%d\r\n",gTPS.x[1],gTPS.y[1]);
 			}
 			break;					
 		default:

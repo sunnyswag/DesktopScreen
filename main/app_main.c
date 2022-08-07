@@ -67,12 +67,15 @@ void app_main(void)
     ds_nvs_save_wifi_info();
     ds_nvs_read_wifi_info();
 
+    TP_POSITION_T position;
+
     init_ft6336();
 
     xTaskCreate(test_task_example, "test_task_example", 2048, NULL, 10, NULL);
 
     while(1){
-        printf("system run ...\n");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // printf("system run ...\n");
+        get_ft6336_touch_sta(&position);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
