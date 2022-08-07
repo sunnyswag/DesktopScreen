@@ -75,8 +75,8 @@ void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
 
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    // ESP_ERROR_CHECK(esp_netif_init());
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     esp_netif_create_default_wifi_sta();
 
@@ -104,6 +104,16 @@ void wifi_init_sta(void)
 
     memcpy(wifi_config.sta.ssid,get_system_data().setting_ssid,32);
     memcpy(wifi_config.sta.password,get_system_data().setting_psw,64);
+    printf("\r\nwifi_ssid:");
+    for(int i = 0;i<get_system_data().setting_ssid_len;i++){
+        printf("%c",wifi_config.sta.ssid[i]);
+    }
+
+    printf("\r\nwifi_password:");
+    for(int i = 0;i<get_system_data().setting_psw_len;i++){
+        printf("%c",wifi_config.sta.password[i]);
+    }
+    printf("\r\n");
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
