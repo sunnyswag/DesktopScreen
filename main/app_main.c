@@ -18,6 +18,7 @@
 #include "ds_spiffs.h"
 #include "ds_system_data.h"
 #include "ds_nvs.h"
+#include "ds_ft6336.h"
 
 #define CHIP_NAME "ESP32"
 
@@ -65,6 +66,8 @@ void app_main(void)
     ds_nvs_init();
     ds_nvs_save_wifi_info();
     ds_nvs_read_wifi_info();
+
+    init_ft6336();
 
     xTaskCreate(test_task_example, "test_task_example", 2048, NULL, 10, NULL);
 
