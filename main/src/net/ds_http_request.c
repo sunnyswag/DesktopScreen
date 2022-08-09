@@ -28,6 +28,9 @@
 
 #include "ds_http_request.h"
 
+#include "ds_ui_timepage.h"
+#include "ds_ui_fans.h"
+#include "ds_ui_weatherpage.h"
 
 static const char *TAG = "HTTP_CLIENT";
 
@@ -59,10 +62,11 @@ static void cjson_time_info(char *text)
     if(len < 11){
         return;
     }
-    // uint8_t hour;
-    // uint8_t minute;
-    // hour = (time[8] - '0')*10+time[9] - '0';
-    // minute = (time[10] - '0')*10+time[11] - '0';
+    uint8_t hour;
+    uint8_t minute;
+    hour = (time[8] - '0')*10+time[9] - '0';
+    minute = (time[10] - '0')*10+time[11] - '0';
+    ds_ui_timepage_set_time(hour,minute);
 }
 
 //天气解析结构体
@@ -116,18 +120,22 @@ void cjson_weather_info(char *text)
         {
             psub=cJSON_GetObjectItem(locat,"name");
             sprintf(weathe.city,"%s",psub->valuestring);
+            ds_ui_weather_set(VALUE_CITY,psub->valuestring);
             ESP_LOGI(TAG,"city:%s",weathe.city);
 
             psub=cJSON_GetObjectItem(now,"text");
             sprintf(weathe.weather_text,"%s",psub->valuestring);
+            ds_ui_weather_set(VALUE_WEATHER,psub->valuestring);
             ESP_LOGI(TAG,"weather:%s",weathe.weather_text);
             
             psub=cJSON_GetObjectItem(now,"code");
             sprintf(weathe.weather_code,"%s",psub->valuestring);
+            ds_ui_weather_set(VALUE_CODE,psub->valuestring);
             ESP_LOGI(TAG,"%s",weathe.weather_code);
 
             psub=cJSON_GetObjectItem(now,"temperature");
             sprintf(weathe.temperatur,"%s",psub->valuestring);
+            ds_ui_weather_set(VALUE_TEMP,psub->valuestring);
             ESP_LOGI(TAG,"temperatur:%s",weathe.temperatur);
         }
     }
@@ -167,6 +175,10 @@ void cjson_fans_info(char *text)
             }
         }
     }
+    if(fans_type == 0)
+        ds_ui_fans_set_fans_num(fans);
+    else
+        ds_ui_fans_set_aqifans_num(fans);
     fans_type++;
     cJSON_Delete(root);
 }

@@ -5,6 +5,7 @@
 #include "ds_ft6336.h"
 #include "ds_i2c.h"
 #include "ds_gpio.h"
+#include "ds_screen.h"
 #include "ds_system_data.h"
 
 //触摸芯片最大5组触摸点，FT6335最大支持双触

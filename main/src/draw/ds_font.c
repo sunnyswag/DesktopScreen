@@ -34,7 +34,7 @@ static x_header_t __g_xbf_hd = {
 
 static uint8_t __g_font_buf[300];//如bin文件存在SPI FLASH可使用此buff
 
-const esp_partition_t* partition_res=NULL;
+esp_partition_t* partition_res=NULL;
 
 static uint8_t *user_font_getdata(int offset, int size)
 {
@@ -108,12 +108,107 @@ int ds_get_bitmap(uint32_t letter,uint8_t *bitmap_buf,uint8_t *box_w,uint8_t *bo
 
 
 void test_ds_font(){
-    // uint8_t buf[300];
-    // uint8_t box_w,box_h = 0;
-    // uint8_t offset_x,offset_y = 0;
-    // int size = ds_get_bitmap(0x0041,buf,&box_w,&box_h,&offset_x,&offset_y);
-    // printf("box_w*h = %d*%d\n",box_w,box_h);
-    // for(int index = 0;index < size ;index ++){
-    //     printf("%x ",buf[index]);
-    // }
+    uint8_t buf[300];
+    uint8_t box_w,box_h = 0;
+    uint8_t offset_x,offset_y = 0;
+    int size = ds_get_bitmap(0x0041,buf,&box_w,&box_h,&offset_x,&offset_y);
+    printf("box_w*h = %d*%d\n",box_w,box_h);
+    for(int index = 0;index < size ;index ++){
+        printf("%x ",buf[index]);
+    }
 }
+
+//SimHei,,-1
+//字模高度：18
+//XBF字体,外部bin文件
+// lv_font_t myFont = {
+//     .get_glyph_bitmap = __user_font_get_bitmap,
+//     .get_glyph_dsc = __user_font_get_glyph_dsc,
+//     .line_height = 18,
+//     .base_line = 0,
+// };
+
+
+// /**
+//  * Decode an UTF-8 character from a string.
+//  * @param txt pointer to '\0' terminated string
+//  * @param i start byte index in 'txt' where to start.
+//  *          After call it will point to the next UTF-8 char in 'txt'.
+//  *          NULL to use txt[0] as index
+//  * @return the decoded Unicode character or 0 on invalid UTF-8 code
+//  */
+// static uint32_t lv_txt_utf8_next(const char * txt, uint32_t * i)
+// {
+//     /* Unicode to UTF-8
+//      * 00000000 00000000 00000000 0xxxxxxx -> 0xxxxxxx
+//      * 00000000 00000000 00000yyy yyxxxxxx -> 110yyyyy 10xxxxxx
+//      * 00000000 00000000 zzzzyyyy yyxxxxxx -> 1110zzzz 10yyyyyy 10xxxxxx
+//      * 00000000 000wwwzz zzzzyyyy yyxxxxxx -> 11110www 10zzzzzz 10yyyyyy 10xxxxxx
+//      * */
+
+//     uint32_t result = 0;
+
+//     /*Dummy 'i' pointer is required*/
+//     uint32_t i_tmp = 0;
+//     if(i == NULL) i = &i_tmp;
+
+//     /*Normal ASCII*/
+//     if((txt[*i] & 0x80) == 0) {
+//         result = txt[*i];
+//         (*i)++;
+//     }
+//     /*Real UTF-8 decode*/
+//     else {
+//         /*2 bytes UTF-8 code*/
+//         if((txt[*i] & 0xE0) == 0xC0) {
+//             result = (uint32_t)(txt[*i] & 0x1F) << 6;
+//             (*i)++;
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += (txt[*i] & 0x3F);
+//             (*i)++;
+//         }
+//         /*3 bytes UTF-8 code*/
+//         else if((txt[*i] & 0xF0) == 0xE0) {
+//             result = (uint32_t)(txt[*i] & 0x0F) << 12;
+//             (*i)++;
+
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += (uint32_t)(txt[*i] & 0x3F) << 6;
+//             (*i)++;
+
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += (txt[*i] & 0x3F);
+//             (*i)++;
+//         }
+//         /*4 bytes UTF-8 code*/
+//         else if((txt[*i] & 0xF8) == 0xF0) {
+//             result = (uint32_t)(txt[*i] & 0x07) << 18;
+//             (*i)++;
+
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += (uint32_t)(txt[*i] & 0x3F) << 12;
+//             (*i)++;
+
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += (uint32_t)(txt[*i] & 0x3F) << 6;
+//             (*i)++;
+
+//             if((txt[*i] & 0xC0) != 0x80) return 0; /*Invalid UTF-8 code*/
+//             result += txt[*i] & 0x3F;
+//             (*i)++;
+//         }
+//         else {
+//             (*i)++; /*Not UTF-8 char. Go the next.*/
+//         }
+//     }
+//     return result;
+// }
+
+// void txt_to_code(const char * txt){
+//     uint32_t i = 0;
+//     while(txt[i] != '\0') {
+//         uint32_t data = lv_txt_utf8_next(txt, &i);
+//         printf("data %x\n",data);
+//     }
+// }
+

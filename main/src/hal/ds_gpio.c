@@ -8,6 +8,7 @@
 #include "driver/gpio.h"
 
 #include "ds_gpio.h"
+#include "ds_ft6336.h"
 #include "ds_system_data.h"
 
 /**
@@ -18,7 +19,7 @@
 
 #define GPIO_OUTPUT_IO_0    5
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0))
-#define GPIO_INPUT_IO_0     4
+#define GPIO_INPUT_IO_0     34
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0))
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -50,7 +51,15 @@ static void gpio_task_example(void* arg)
     for(;;) {
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-            
+            if(io_num == GPIO_INPUT_IO_0){
+                if(gpio_get_level(io_num) == 0){
+                    //TODO START COUNT 
+                    reset_tp_action_manage();
+                }else{
+                    //TODO STOP COUNT 
+                    check_tp_action();
+                }
+            }
         }
     }
 }

@@ -20,6 +20,11 @@
 
 #define DMA_CHAN    2
 
+// #define PIN_NUM_MISO 0
+// #define PIN_NUM_MOSI 5
+// #define PIN_NUM_CLK  25
+// #define PIN_NUM_CS   27
+
 #define PIN_NUM_MISO 33
 #define PIN_NUM_MOSI 26
 #define PIN_NUM_CLK  25
@@ -102,4 +107,14 @@ void screen_spi_test(){
     spi_send_cmd(0x55);
     vTaskDelay(10 / portTICK_PERIOD_MS);
     spi_send_data(0x55);
+    // ds_gpio_set_screen_rst(0);		// Module reset
+	// vTaskDelay(10 / portTICK_PERIOD_MS);
+	// ds_gpio_set_screen_rst(1);
+	// vTaskDelay(10 / portTICK_PERIOD_MS);
+
+    // ds_gpio_set_screen_dc(0);		// Module reset
+	// vTaskDelay(10 / portTICK_PERIOD_MS);
+	// ds_gpio_set_screen_dc(1);
+	// vTaskDelay(10 / portTICK_PERIOD_MS);
+    // printf("ds_gpio_get_screen_busy() %d\n",ds_gpio_get_screen_busy());
 }

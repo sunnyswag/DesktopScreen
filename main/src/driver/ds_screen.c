@@ -256,9 +256,11 @@ void ds_screen_partial_data_init(){
 
 void ds_screen_partial_data_add(unsigned int x_start,unsigned int x_end,unsigned int y_start,unsigned int y_end ,const uint8_t *data){
 	uint8_t x_len = x_end - x_start;
+	// uint8_t y_len = y_end - y_start;
 	uint8_t x_data_location = x_start/8;   
 	uint8_t x_size = x_len/8;   
 	int data_index = 0;
+	// int move = x_start % 8;
 	if(x_start % 8 != 0){
 		x_data_location ++;
 	}
@@ -267,8 +269,9 @@ void ds_screen_partial_data_add(unsigned int x_start,unsigned int x_end,unsigned
 	}
 	//x_data_location=0 x_size=5  
 	//90 126
-	printf("x_data_location %d x_size%d\n",x_data_location,x_size);
-	printf("ystart %d y_end%d\n",y_start,y_end);
+	// printf("x_data_location %d x_size%d\n",x_data_location,x_size);
+	// printf("ystart %d y_end%d\n",y_start,y_end);
+	int status = 0;
 	for(int x_index = y_start ;x_index < y_end;x_index ++){
 		for(int y_index = x_data_location ;y_index < (x_data_location+x_size);y_index ++){
 			partial_data[x_index][y_index] = (~data[data_index]);

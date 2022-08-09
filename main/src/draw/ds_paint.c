@@ -9,7 +9,7 @@ ROTATE_IMAGE Epd_Rotate = ROTATE_90;
 uint8_t UTF8toUnicode(uint8_t *ch, uint16_t *_unicode)
 {
     uint8_t *p = NULL ,n = 0;
-    int e = 0;
+    uint16_t e = 0;
     p = ch;
     if(1)//p == NULL
     {
@@ -437,7 +437,8 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
                         UWORD Color_Foreground, UWORD Color_Background)
 {
     const char* pstr = pString;
-    int i;
+    int x = Xstart, y = Ystart;
+    int i, j,Num;
     uint8_t  bitmap[300];
     i = 0;
     uint16_t char_cn_un = 0;
@@ -454,7 +455,8 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
         UTF8toUnicode((uint8_t*)pstr+i,&char_cn_un);
         uint8_t box_w,box_h = 0;
         uint8_t offset_x,offset_y = 0;
-        ds_get_bitmap(char_cn_un,bitmap,&box_w,&box_h,&offset_x,&offset_y);
+        int size = ds_get_bitmap(char_cn_un,bitmap,&box_w,&box_h,&offset_x,&offset_y);
+            
         uint8_t page_len = box_h;  //box_h
         uint8_t colnum_len = box_w/2; //box_w/2
         printf("page_len %d  colnum_len %d\n",page_len,colnum_len); 

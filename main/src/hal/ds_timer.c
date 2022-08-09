@@ -15,6 +15,10 @@
 #include "driver/timer.h"
 
 #include "ds_timer.h"
+#include "ds_system_data.h"
+#include "ds_ft6336.h"
+#include "ds_ui_timepage.h"
+#include "ds_ui_tomatopage.h"
 
 #define TIMER_DIVIDER         16  //  Hardware timer clock divider
 #define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER/1000)  // convert counter value to ms seconds
@@ -69,7 +73,7 @@ void IRAM_ATTR timer_group0_isr(void *para)
  * auto_reload - should the timer auto reload on alarm?
  * timer_interval_sec - the interval of alarm to set
  */
-static void example_tg0_timer_init(int timer_idx,
+static void tg0_timer_init(int timer_idx,
                                    bool auto_reload, double timer_interval_sec)
 {
     /* Select and initialize basic parameters of the timer */
@@ -96,22 +100,38 @@ static void example_tg0_timer_init(int timer_idx,
 }
 
 /*
- * The main task of this example program
+ * The main task of this example program 10ms/1次
  */
-static void timer_example_evt_task(void *arg)
+static void timer_evt_task(void *arg)
 {
     while (1) {
         timer_event_t evt;
         xQueueReceive(timer_queue, &evt, portMAX_DELAY);
+        
+        count_tp_action_manage_time();
+
+        TP_POSITION_T position;
+        if(get_tp_action_status() > 0 && get_tp_action_status() <= 2){
+            get_ft6336_touch_sta(&position);
+            if(position.status != 0)
+                set_tp_action_manage_start_point(position.x,position.y);
+        }else if(get_tp_action_status() > 2){
+            get_ft6336_touch_sta(&position);
+            if(position.status != 0)
+                set_tp_action_manage_stop_point(position.x,position.y);
+        }
+
         g_timer_event.timer_minute_count ++;
         //60s 计算一次 刷新时间
         if(g_timer_event.timer_minute_count >= 6000){
             g_timer_event.timer_minute_count = 0;
+            ds_ui_timepage_updatetime();
         }
         g_timer_event.timer_second_count ++;
         //1s计算一次 
         if(g_timer_event.timer_second_count >= 100){
             g_timer_event.timer_second_count = 0;
+            ds_ui_tomatopage_updatetime();
         }
     }
 }
@@ -124,7 +144,7 @@ void ds_timer_init(void)
     g_timer_event.timer_minute_count = 0;
     g_timer_event.timer_second_count = 0;
     timer_queue = xQueueCreate(10, sizeof(timer_event_t));
-    example_tg0_timer_init(TIMER_0, TEST_WITH_RELOAD, TIMER_INTERVAL0_SEC);
-    xTaskCreate(timer_example_evt_task, "timer_evt_task", 2048, NULL, 5, NULL);
+    tg0_timer_init(TIMER_0, TEST_WITH_RELOAD, TIMER_INTERVAL0_SEC);
+    xTaskCreate(timer_evt_task, "timer_evt_task", 2048, NULL, 5, NULL);
 }
 
