@@ -118,4 +118,6 @@ void ds_paint_image(void);
 void ds_paint_image_new(void);
 void ds_paint_image_copy(void);
 void ds_paint_last_page(void);
+
+void ds_ui_show_test();
 #endif

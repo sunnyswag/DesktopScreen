@@ -535,6 +535,39 @@ void ds_paint_image_new(){
 	}  	 	
 }
 
+void ds_paint_clean(void){
+	unsigned int i;
+	for(i=0;i<2888;i++){
+		spi_send_data(0);  
+	}  	 		
+}
+
 void ds_paint_image_copy(){
     memcpy(gImage_last_page,Paint._Image,2888);
+}
+
+
+#define EPD_2IN9BC_WIDTH       152
+#define EPD_2IN9BC_HEIGHT      152
+#define IMAGE_SIZE (((EPD_2IN9BC_WIDTH % 8 == 0) ? (EPD_2IN9BC_WIDTH / 8 ) : (EPD_2IN9BC_WIDTH / 8 + 1)) * EPD_2IN9BC_HEIGHT)
+
+void ds_ui_show_test(){
+
+    uint8_t *m_custom_image;
+    printf("IMAGE_SIZE %d\n",IMAGE_SIZE);
+    if ((m_custom_image = (uint8_t *)malloc(IMAGE_SIZE)) == NULL) {
+      printf("Failed to apply for black memory...\r\n");
+      return ;
+    }
+    Paint_NewImage(m_custom_image, EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT, 0, WHITE);
+    Paint_SelectImage(m_custom_image);
+    Paint_Clear(WHITE);
+
+    Paint_DrawString_CN(50, 80, "hello", WHITE, BLACK);
+    Paint_DrawString_CN(50, 110, "你好", WHITE, BLACK);
+
+    ds_screen_partial_display(0,151,0,151 ,ds_paint_clean,ds_paint_image_new); 
+
+    ds_paint_image_copy();
+    free(m_custom_image);
 }

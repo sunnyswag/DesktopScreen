@@ -13,11 +13,16 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
 
 #include "ds_timer.h"
 #include "ds_spiffs.h"
 #include "ds_system_data.h"
 #include "ds_nvs.h"
+
+#include "ds_ft6336.h"
+#include "ds_screen.h"
+#include "ds_paint.h"
 
 #define CHIP_NAME "ESP32"
 
@@ -52,19 +57,16 @@ void app_main(void)
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 
     ESP_LOGI(TAG, "system init V1.1");
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    ds_timer_init();
-
-    init_spiffs();
-    ds_spiffs_test();
-    ds_spiffs_deinit();
-
-    char *ssid="leo";
-    char *psw="123456789";
-    set_system_data_wifi_info(ssid,strlen(ssid),psw,strlen(psw));
-    ds_nvs_init();
-    ds_nvs_save_wifi_info();
-    ds_nvs_read_wifi_info();
+    init_ft6336();
+    init_screen_interface();
+    ds_screen_init();
+    ds_screen_clean_white();
+    // ds_screen_image_test();
+    ds_ui_show_test();
 
     xTaskCreate(test_task_example, "test_task_example", 2048, NULL, 10, NULL);
 
