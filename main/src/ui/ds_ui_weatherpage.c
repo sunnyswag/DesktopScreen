@@ -53,7 +53,6 @@ void ds_ui_weather_set(VALUE_TYPE_T type,char *value){
     // printf("value:%s code:%d",value,g_weather_page.code);
 }
 
-
 void ds_ui_weather_show(uint8_t type){
 
     g_weather_page.updateing = 1;
@@ -69,7 +68,7 @@ void ds_ui_weather_show(uint8_t type){
 
     Paint_DrawString_piture(0,0,gImage_back,icon_back_len,36, WHITE, BLACK);
 
-    Paint_DrawString_CN(30, 75,g_weather_page.city, WHITE, BLACK);
+    Paint_DrawString_CN(30, 80,g_weather_page.city, WHITE, BLACK);
     switch (g_weather_page.code)
     {
     case 0:
@@ -117,7 +116,11 @@ void ds_ui_weather_show(uint8_t type){
 
     Paint_DrawString_CN(50, 120,g_weather_page.temperature_array, WHITE, BLACK);
     Paint_DrawString_piture(80,85,gImage_template,icon_template_len,32, WHITE, BLACK);
-    Paint_DrawString_CN(70, 145,g_weather_page.weather_text, WHITE, BLACK);
+    if(strlen(g_weather_page.weather_text)/3 == 4){
+        Paint_DrawString_CN(35, 145,g_weather_page.weather_text, WHITE, BLACK);
+    }else{
+        Paint_DrawString_CN(55, 145,g_weather_page.weather_text, WHITE, BLACK);
+    }
     
 
     ds_screen_partial_display(0,151,0,151 ,ds_ui_back_main_page,ds_paint_image_new); 

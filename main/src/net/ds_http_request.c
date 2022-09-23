@@ -31,10 +31,14 @@
 #include "ds_ui_timepage.h"
 #include "ds_ui_fans.h"
 #include "ds_ui_weatherpage.h"
+#include "ds_nvs.h"
+#include "ds_system_data.h"
 
 static const char *TAG = "HTTP_CLIENT";
 
 int fans_type = 0;
+
+xQueueHandle http_request_event_queue;
 
 /*
 {
@@ -64,9 +68,11 @@ static void cjson_time_info(char *text)
     }
     uint8_t hour;
     uint8_t minute;
+    uint8_t second;
     hour = (time[8] - '0')*10+time[9] - '0';
     minute = (time[10] - '0')*10+time[11] - '0';
-    ds_ui_timepage_set_time(hour,minute);
+    second = (time[12] - '0')*10+time[13] - '0';
+    update_system_time(hour,minute,second);
 }
 
 //天气解析结构体
@@ -175,11 +181,13 @@ void cjson_fans_info(char *text)
             }
         }
     }
-    if(fans_type == 0)
+    if(fans_type == 0){
         ds_ui_fans_set_fans_num(fans);
-    else
+        fans_type = 1;
+    }else{
         ds_ui_fans_set_aqifans_num(fans);
-    fans_type++;
+        fans_type = 0;
+    }
     cJSON_Delete(root);
 }
 
@@ -215,13 +223,24 @@ static void cjson_city_info(char *text)
 //事件回调
 static esp_err_t _http_time_event_handle(esp_http_client_event_t *evt)
 {
+    static char* output_buffer; // Buffer to store response of http request from event handler
+    static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                printf("%.*s\n", evt->data_len, (char*)evt->data);
-                if(evt->data_len < 100)
-                cjson_time_info((char*)evt->data);
+                if (output_buffer == NULL) {
+                    output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
+                    output_len = 0;
+                    if (output_buffer == NULL) {
+                        ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
+                        return ESP_FAIL;
+                    }
+                }
+                memcpy(output_buffer + output_len, evt->data, evt->data_len);
+                printf("%.*s\n", output_len, output_buffer);
+                cjson_time_info((char*)output_buffer);
+                output_len += evt->data_len;
             }
             break;
         case HTTP_EVENT_ERROR:
@@ -232,9 +251,29 @@ static esp_err_t _http_time_event_handle(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_ON_HEADER:
             break;
-        case HTTP_EVENT_DISCONNECTED:
-            break;
         case HTTP_EVENT_ON_FINISH:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+            if (output_buffer != NULL) {
+                // Response is accumulated in output_buffer. Uncomment the below line to print the accumulated response
+                // ESP_LOG_BUFFER_HEX(TAG, output_buffer, output_len);
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
+            break;
+        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+            int mbedtls_err = 0;
+            esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
+            if (err != 0) {
+                ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
+                ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+            }
+            if (output_buffer != NULL) {
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
             break;
     }
     return ESP_OK;
@@ -242,25 +281,73 @@ static esp_err_t _http_time_event_handle(esp_http_client_event_t *evt)
 
 static esp_err_t _http_weather_event_handle(esp_http_client_event_t *evt)
 {
+    static char* output_buffer; // Buffer to store response of http request from event handler
+    static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
-        case HTTP_EVENT_ON_DATA://接收数据事件
-            ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-            if (!esp_http_client_is_chunked_response(evt->client)) {
-                printf("%.*s\n", evt->data_len, (char*)evt->data);
-                cjson_weather_info((char*)evt->data);
-            }
-            break;
         case HTTP_EVENT_ERROR:
+            ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
             break;
         case HTTP_EVENT_ON_CONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
             break;
         case HTTP_EVENT_HEADERS_SENT:
+            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
-        case HTTP_EVENT_DISCONNECTED:
+        case HTTP_EVENT_ON_DATA:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+            /*
+             *  Check for chunked encoding is added as the URL for chunked encoding used in this example returns binary data.
+             *  However, event handler can also be used in case chunked encoding is used.
+             */
+            if (!esp_http_client_is_chunked_response(evt->client)) {
+                // If user_data buffer is configured, copy the response into the buffer
+                if (evt->user_data) {
+                    memcpy(evt->user_data + output_len, evt->data, evt->data_len);
+                    printf("%.*s\n", output_len, (char*)evt->user_data);
+                    cjson_weather_info((char*)evt->user_data);
+                } else {
+                    if (output_buffer == NULL) {
+                        output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
+                        output_len = 0;
+                        if (output_buffer == NULL) {
+                            ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
+                            return ESP_FAIL;
+                        }
+                    }
+                    memcpy(output_buffer + output_len, evt->data, evt->data_len);
+                    printf("%.*s\n", output_len, output_buffer);
+                    cjson_weather_info((char*)output_buffer);
+                }
+                output_len += evt->data_len;
+            }
+
             break;
         case HTTP_EVENT_ON_FINISH:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+            if (output_buffer != NULL) {
+                // Response is accumulated in output_buffer. Uncomment the below line to print the accumulated response
+                // ESP_LOG_BUFFER_HEX(TAG, output_buffer, output_len);
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
+            break;
+        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+            int mbedtls_err = 0;
+            esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
+            if (err != 0) {
+                ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
+                ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+            }
+            if (output_buffer != NULL) {
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
             break;
     }
     return ESP_OK;
@@ -268,25 +355,61 @@ static esp_err_t _http_weather_event_handle(esp_http_client_event_t *evt)
 
 static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
 {
+    static char* output_buffer; // Buffer to store response of http request from event handler
+    static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                printf("%.*s\n", evt->data_len, (char*)evt->data);
-                cjson_fans_info((char*)evt->data);
+                if (output_buffer == NULL) {
+                    output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
+                    output_len = 0;
+                    if (output_buffer == NULL) {
+                        ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
+                        return ESP_FAIL;
+                    }
+                }
+                memcpy(output_buffer + output_len, evt->data, evt->data_len);
+                printf("%.*s\n", output_len, output_buffer);
+                cjson_fans_info((char*)output_buffer);
+                output_len += evt->data_len;
             }
             break;
         case HTTP_EVENT_ERROR:
+            ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
             break;
         case HTTP_EVENT_ON_CONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
             break;
         case HTTP_EVENT_HEADERS_SENT:
+            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
-            break;
-        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
         case HTTP_EVENT_ON_FINISH:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+            if (output_buffer != NULL) {
+                // Response is accumulated in output_buffer. Uncomment the below line to print the accumulated response
+                // ESP_LOG_BUFFER_HEX(TAG, output_buffer, output_len);
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
+            break;
+        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+            int mbedtls_err = 0;
+            esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
+            if (err != 0) {
+                ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
+                ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+            }
+            if (output_buffer != NULL) {
+                free(output_buffer);
+                output_buffer = NULL;
+            }
+            output_len = 0;
             break;
     }
     return ESP_OK;
@@ -303,16 +426,22 @@ static esp_err_t _http_city_event_handle(esp_http_client_event_t *evt)
             }
             break;
         case HTTP_EVENT_ERROR:
+            ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
             break;
         case HTTP_EVENT_ON_CONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
             break;
         case HTTP_EVENT_HEADERS_SENT:
+            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
         case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
             break;
         case HTTP_EVENT_ON_FINISH:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
             break;
     }
     return ESP_OK;
@@ -339,13 +468,31 @@ void http_time_get(){
 }
 
 void http_weather_get(){
+    char count_url[130];
+    char *city = ds_nvs_read_city();
+    //判断是否有存储城市信息
+    if(city != NULL){
+        char url[] = "http://api.seniverse.com/v3/weather/now.json?key=SmazqPcltzTft-X3v&location=";
+        uint8_t city_len = strlen(city);
+        char citydata[30];
+        memcpy(citydata,city,city_len);
+        citydata[city_len] = '\0';
+        strcat(url,citydata);
+        strcat(url,"&language=zh-Hans&unit=c"); 
+        printf("%s\n",url);
+        strcpy(count_url,url);
+        free(city);
+    }else{
+        strcpy(count_url,"http://api.seniverse.com/v3/weather/now.json?key=SmazqPcltzTft-X3v&location=guangzhou&language=zh-Hans&unit=c");
+    }
     //http client配置
     esp_http_client_config_t config = {
         .method = HTTP_METHOD_GET, //get请求
-        .url = "https://api.seniverse.com/v3/weather/now.json?key=SmazqPcltzTft-X3v&location=guangzhou&language=zh-Hans&unit=c",
+        .url = count_url,
         .event_handler = _http_weather_event_handle,//注册时间回调
         .skip_cert_common_name_check = true,
     };
+
 	esp_http_client_handle_t weather_client = esp_http_client_init(&config);//初始化配置
 	esp_err_t err = esp_http_client_perform(weather_client);//执行请求
 
@@ -362,10 +509,10 @@ void http_fans_get(){
     char url[100];
     if(fans_type == 0){
         //小智
-        strcpy(url,"https://api.bilibili.com/x/relation/stat?vmid=383943678&jsonp=jsonp");
+        strcpy(url,"http://api.bilibili.com/x/relation/stat?vmid=383943678&jsonp=jsonp");
     }else{
         //阿奇
-        strcpy(url,"https://api.bilibili.com/x/relation/stat?vmid=257459324&jsonp=jsonp");
+        strcpy(url,"http://api.bilibili.com/x/relation/stat?vmid=257459324&jsonp=jsonp");
     }
 
     //http client配置 
@@ -442,38 +589,49 @@ void ds_http_post(void)
     // esp_http_client_cleanup(client);
 }
 
-
-xQueueHandle http_get_event_queue;
-
-void ds_http_set_type(HTTP_GET_TYPE_E type){
-    HTTP_GET_EVENT_T evt;
-	evt.type = type;
-	xQueueSend(http_get_event_queue, &evt, 10);
+void ds_http_request_type(HTTP_REQUEST_TYPE_E type){
+    HTTP_REQUEST_TYPE_E evt;
+	evt = type;
+	xQueueSend(http_request_event_queue, &evt, 0);
 }
 
-static void http_get_task(void *pvParameters)
+void ds_http_request_all(){
+    ds_http_request_type(HTTP_GET_FANS);
+    ds_http_request_type(HTTP_GET_WEATHER);
+    ds_http_request_type(HTTP_GET_TIME);
+    ds_http_request_type(HTTP_GET_FANS);
+}
+
+static void http_request_task(void *pvParameters)
 {
     while(1) {
-        HTTP_GET_EVENT_T evt;
-        xQueueReceive(http_get_event_queue, &evt, portMAX_DELAY);
-        ESP_LOGI(TAG, "http_get_task %d",evt.type);
+        HTTP_REQUEST_TYPE_E evt;
+        xQueueReceive(http_request_event_queue, &evt, portMAX_DELAY);
+        ESP_LOGI(TAG, "http_get_task %d",evt);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        if(evt.type == HTTP_GET_TIME){
+        switch (evt)
+        {
+        case HTTP_GET_TIME:
             http_time_get();
-        }else if(evt.type == HTTP_GET_WEATHER){
+            break;
+        case HTTP_GET_WEATHER:
             http_weather_get();
-        }else if(evt.type == HTTP_GET_FANS){
+            break;
+        case HTTP_GET_FANS:
             http_fans_get();
-        }else if(evt.type == HTTP_GET_CITY){
+            break;
+        case HTTP_GET_CITY:
             http_city_get();
+            break;
+        default:
+            break;
         }
         vTaskDelay(2000 / portTICK_PERIOD_MS);
-
     }
 }
 
 void ds_http_request_init(void)
 {
-	http_get_event_queue = xQueueCreate(10, sizeof(HTTP_GET_EVENT_T));
-    xTaskCreate(&http_get_task, "http_get_task", 4096, NULL, 5, NULL);
+	http_request_event_queue = xQueueCreate(10, sizeof(HTTP_REQUEST_TYPE_E));
+    xTaskCreate(&http_request_task, "http_request_task", 4096, NULL, 5, NULL);
 }

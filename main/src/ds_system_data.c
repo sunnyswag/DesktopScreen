@@ -6,6 +6,8 @@
 #include "ds_system_data.h"
 #include "ds_ui_page_manage.h"
 #include "ds_ui_tomatopage.h"
+#include "ds_ui_weatherpage.h"
+#include "ds_nvs.h"
 
 static const char *TAG = "ds_system_data";
 
@@ -13,12 +15,18 @@ SYSTRM_DATA_T g_system_data;
 
 void ds_system_data_init(){
     memset(&g_system_data,0,sizeof(SYSTRM_DATA_T));
+    g_system_data.first_time_httpdata_request = true;
+    g_system_data.update_httpdata_request = false;
+    g_system_data.has_wifi_info = false;
+    g_system_data.hour = 10;
+    g_system_data.minute = 10;
 }
 
 SYSTRM_DATA_T get_system_data(){
     return g_system_data;
 }
 
+//设置wifi信息
 void set_system_data_wifi_info(char * p_ssid,char *p_psw){
     int p_ssidlen = strlen(p_ssid);
     int p_pswlen = strlen(p_psw);
@@ -26,6 +34,7 @@ void set_system_data_wifi_info(char * p_ssid,char *p_psw){
         ESP_LOGE(TAG, "MAX_SETTING_SSID_PWD_LEN ERROR");
         return;
     }
+    g_system_data.has_wifi_info = true;
     g_system_data.setting_ssid_len = p_ssidlen;
     g_system_data.setting_psw_len = p_pswlen;
     memcpy(g_system_data.setting_ssid,p_ssid,p_ssidlen);
@@ -34,12 +43,74 @@ void set_system_data_wifi_info(char * p_ssid,char *p_psw){
     g_system_data.setting_psw[p_pswlen] = '\0';
 }
 
+//是否已经存储到wifi信息
+bool has_wifi_info(){
+    return g_system_data.has_wifi_info;
+}
+
+//打印wifi信息
+void print_system_data_wifi_info(){
+    printf("wifi_ssid:");
+    for(int i = 0;i<g_system_data.setting_ssid_len;i++){
+        printf("%c",g_system_data.setting_ssid[i]);
+    }
+    printf("\r\nwifi_password:");
+    for(int i = 0;i<g_system_data.setting_psw_len;i++){
+        printf("%c",g_system_data.setting_psw[i]);
+    }
+    printf("\r\n");
+}
+
+//获取sta模式状态
+WIFI_STA_MODE_STATUS_E get_wifi_sta_status(){
+    return g_system_data.wifi_sta_status;
+}
+
+void set_wifi_sta_status(WIFI_STA_MODE_STATUS_E status){
+    g_system_data.wifi_sta_status = status;
+}
+
+//获取ap模式状态
+WIFI_AP_MODE_STATUS_E get_wifi_ap_status(){
+    return g_system_data.wifi_ap_status;
+}
+
+void set_wifi_ap_status(WIFI_AP_MODE_STATUS_E status){
+    g_system_data.wifi_ap_status = status;
+}
+
+void set_is_ap_sta_open(bool isopen){
+    g_system_data.is_ap_sta_open = isopen;
+}
+
+bool get_is_ap_sta_open(){
+    return g_system_data.is_ap_sta_open;
+}
+
+void set_has_first_time_httpdata_request(){
+    g_system_data.first_time_httpdata_request = false;
+}
+
+bool has_first_time_httpdata_request(){
+    return g_system_data.first_time_httpdata_request;
+}
+
+void set_update_httpdata_request(bool update){
+    g_system_data.update_httpdata_request = update;
+}
+
+bool has_update_httpdata_request(){
+    return g_system_data.update_httpdata_request;
+}
+
+//设置城市
 void set_system_data_city_info(char * p_city){
     int p_citylen = strlen(p_city);
     g_system_data.setting_city_len = p_citylen;
     memcpy(g_system_data.setting_city,p_city,p_citylen);
     g_system_data.setting_city[p_citylen] = '\0';
     printf("setting weather city = %s\n",g_system_data.setting_city);
+    ds_nvs_save_city(p_city);
 }
 
 static uint8_t check_chartime_to_uint(char *time,int len){
@@ -72,34 +143,6 @@ void set_system_data_tomato_info(char * work_time,char * rest_time,char * count_
     g_system_data.tomato_time_count = check_chartime_to_uint(count_time,count_len);
     ds_ui_tomatopage_time_set(g_system_data.tomato_work_time ,g_system_data.tomato_rest_time,g_system_data.tomato_time_count);
     printf("\r\n set_system_data_tomato_info %d %d :%d\n",g_system_data.tomato_work_time,g_system_data.tomato_rest_time,g_system_data.tomato_time_count);                 
-}
-
-void print_system_data_wifi_info(){
-    printf("\r\nwifi_ssid:");
-    for(int i = 0;i<g_system_data.setting_ssid_len;i++){
-        printf("%c",g_system_data.setting_ssid[i]);
-    }
-
-    printf("\r\nwifi_password:");
-    for(int i = 0;i<g_system_data.setting_psw_len;i++){
-        printf("%c",g_system_data.setting_psw[i]);
-    }
-    printf("\r\n");
-}
-
-SETTING_DATA_E check_system_data_wifi_info(){
-    if(g_system_data.setting_ssid_len != 0){
-        return SETTING_DATA_HAS_WIFI_INFO;
-    }
-    return SETTING_DATA_INIT;
-}
-
-WIFI_MODE_E get_wifi_status(){
-    return g_system_data.wifi_status;
-}
-
-void set_wifi_status(WIFI_MODE_E status){
-    g_system_data.wifi_status = status;
 }
 
 void reset_tp_action_manage(){
@@ -145,18 +188,34 @@ void check_tp_action(){
         ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action,g_system_data.tp_action_manage.tp_start_x,g_system_data.tp_action_manage.tp_start_y);
         return;
     }
-    if(abs(m_manage->tp_start_x - m_manage->tp_stop_x) > 10){
-        if(m_manage->tp_start_x > m_manage->tp_stop_x){
-            ESP_LOGI(TAG,"action TP_ACTION_MOVE_LEFT");
-            g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_LEFT;
+    if(abs(m_manage->tp_start_x - m_manage->tp_stop_x) > abs(m_manage->tp_start_y - m_manage->tp_stop_y)){
+        //左右滑动
+        if(abs(m_manage->tp_start_x - m_manage->tp_stop_x) > 10){
+            if(m_manage->tp_start_x > m_manage->tp_stop_x){
+                ESP_LOGI(TAG,"action TP_ACTION_MOVE_LEFT");
+                g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_LEFT;
+            }else{
+                ESP_LOGI(TAG,"action TP_ACTION_MOVE_RIGHT");
+                g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_RIGHT;
+            }
+            ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action,g_system_data.tp_action_manage.tp_start_x,g_system_data.tp_action_manage.tp_start_y);
+            return;
         }
-        else{
-            ESP_LOGI(TAG,"action TP_ACTION_MOVE_RIGHT");
-            g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_RIGHT;
+    }else{
+        //上下滑动
+        if(abs(m_manage->tp_start_y - m_manage->tp_stop_y) > 10){
+            if(m_manage->tp_start_y > m_manage->tp_stop_y){
+                ESP_LOGI(TAG,"action TP_ACTION_MOVE_UP");
+                g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_UP;
+            }else{
+                ESP_LOGI(TAG,"action TP_ACTION_MOVE_DOWN");
+                g_system_data.tp_action_manage.tp_action = TP_ACTION_MOVE_DOWN;
+            }
+            ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action,g_system_data.tp_action_manage.tp_start_x,g_system_data.tp_action_manage.tp_start_y);
+            return;
         }
-        ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action,g_system_data.tp_action_manage.tp_start_x,g_system_data.tp_action_manage.tp_start_y);
-        return;
     }
+
     //300ms
     if(m_manage->tp_interval_timecount < 30){
         if((m_manage->tp_stop_x + m_manage->tp_stop_y + m_manage->tp_start_x + m_manage->tp_start_y) == 0)
@@ -187,18 +246,40 @@ void clear_tp_action(){
     g_system_data.tp_action_manage.tp_action = TP_ACTION_NULL;
 }
 
-void set_net_status(NET_STATUS_E status){
-    g_system_data.net_status = status;
+void set_tp_wackup_timeleft(){
+    //600/1s 10min
+    g_system_data.tp_wackup_timeleft = 60;
 }
 
-NET_STATUS_E get_net_status(){
-    return g_system_data.net_status;
+void count_tp_wackup_timeleft(){
+    if(g_system_data.tp_wackup_timeleft > 0){
+        g_system_data.tp_wackup_timeleft --;
+    }
 }
 
-void set_setting_status(SETTING_STATUS_E status){
-    g_system_data.setting_status = status;
+uint32_t get_tp_wackup_timeleft(){
+    return g_system_data.tp_wackup_timeleft;
 }
 
-SETTING_STATUS_E get_setting_status(){
-    return g_system_data.setting_status;
+void update_system_time(uint8_t hour,uint8_t minute,uint8_t second){
+    ESP_LOGI(TAG,"update system time %d:%d:%d\n",hour,minute,second);
+    g_system_data.hour = hour;
+    g_system_data.minute = minute;
+    g_system_data.second = second;
+}
+
+void update_system_time_second(){
+    if(g_system_data.second >= 59){
+        g_system_data.second = 0;
+        if(g_system_data.minute >= 59){
+            g_system_data.minute = 0;
+            if(g_system_data.hour >= 23){
+                g_system_data.hour = 0;
+            }else
+                g_system_data.hour ++;
+        }else
+            g_system_data.minute ++;
+    }else{
+        g_system_data.second ++;
+    }
 }

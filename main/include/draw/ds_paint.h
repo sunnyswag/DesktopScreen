@@ -113,7 +113,7 @@ void Paint_SelectImage(UBYTE *_image);
 void Paint_Clear(UWORD Color);
 void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
                         UWORD Color_Foreground, UWORD Color_Background);
-void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, unsigned char *pbuf ,int plen,int pxsize,
+void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart,const unsigned char *pbuf ,int plen,int pxsize,
                         UWORD Color_Foreground, UWORD Color_Background);
 void ds_paint_image(void);
 void ds_paint_image_new(void);

@@ -25,7 +25,7 @@
 // #define PIN_NUM_CLK  25
 // #define PIN_NUM_CS   27
 
-#define PIN_NUM_MISO 33
+#define PIN_NUM_MISO 23
 #define PIN_NUM_MOSI 26
 #define PIN_NUM_CLK  25
 #define PIN_NUM_CS   27

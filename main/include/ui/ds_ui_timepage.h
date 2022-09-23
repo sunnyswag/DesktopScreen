@@ -19,6 +19,5 @@ void ds_ui_timepage_updatetime(void);
 void ds_ui_timepage_show_time(uint8_t type);
 void ds_ui_timepage_show_time_init();
 void ds_ui_timepage_init(void);
-void ds_ui_timepage_set_time(uint8_t hour,uint8_t minute);
 
 #endif

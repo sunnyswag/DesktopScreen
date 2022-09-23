@@ -94,7 +94,6 @@ void wifi_init_sta(void)
              * However these modes are deprecated and not advisable to be used. Incase your Access point
              * doesn't support WPA2, these mode can be enabled by commenting below line */
 	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-
             .pmf_cfg = {
                 .capable = true,
                 .required = false
@@ -104,6 +103,17 @@ void wifi_init_sta(void)
 
     memcpy(wifi_config.sta.ssid,get_system_data().setting_ssid,32);
     memcpy(wifi_config.sta.password,get_system_data().setting_psw,64);
+
+    printf("\r\nget wifi_ssid:");
+    for(int i = 0;i<get_system_data().setting_ssid_len;i++){
+        printf("%c",wifi_config.sta.ssid[i]);
+    }
+
+    printf("\r\nget wifi_password:");
+    for(int i = 0;i<get_system_data().setting_psw_len;i++){
+        printf("%c",wifi_config.sta.password[i]);
+    }
+    printf("\r\n");
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
@@ -124,11 +134,11 @@ void wifi_init_sta(void)
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-        set_net_status(NET_CONNECT);
+        set_wifi_sta_status(WIFI_STA_MODE_CONNECT_SUCCESS);
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-        set_net_status(NET_DISCONNECT);
+        set_wifi_sta_status(WIFI_STA_MODE_CONNECT_FAIL);
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }

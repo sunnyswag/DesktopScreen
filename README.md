@@ -20,6 +20,9 @@ idf.py -p /dev/ttyUSB0 monitor
 ## 构建、下载、监视
 idf.py -p /dev/ttyUSB0 flash monitor
 
+## 擦除
+idf.py -p /dev/ttyUSB0 erase-flash
+
 ## 编译成功提示
 Project build complete.
 

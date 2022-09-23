@@ -32,11 +32,13 @@
 typedef struct {
     uint64_t timer_minute_count;
     uint64_t timer_second_count;
+    uint64_t timer_second_count_isr;
 } timer_event_t;
 
 timer_event_t g_timer_event;
 
 xQueueHandle timer_queue;
+xQueueHandle ui_update_timer_queue;
 
 /*
  * Timer group0 ISR handler
@@ -48,7 +50,7 @@ xQueueHandle timer_queue;
  */
 void IRAM_ATTR timer_group0_isr(void *para)
 {
-    timer_spinlock_take(TIMER_GROUP_0);
+    // timer_spinlock_take(TIMER_GROUP_0);
     int timer_idx = (int) para;
 
     // /* Prepare basic event data
@@ -62,8 +64,15 @@ void IRAM_ATTR timer_group0_isr(void *para)
     timer_group_enable_alarm_in_isr(TIMER_GROUP_0, timer_idx);
 
     /* Now just send the event data back to the main program task */
+    g_timer_event.timer_second_count_isr ++;
+    //1s计算一次 
+    if(g_timer_event.timer_second_count_isr >= 100){
+        g_timer_event.timer_second_count_isr = 0;
+        update_system_time_second();
+    }
     xQueueSendFromISR(timer_queue, &evt, NULL);
-    timer_spinlock_give(TIMER_GROUP_0);
+    xQueueSendFromISR(ui_update_timer_queue, &evt, NULL);
+    // timer_spinlock_give(TIMER_GROUP_0);
 }
 
 /*
@@ -107,9 +116,7 @@ static void timer_evt_task(void *arg)
     while (1) {
         timer_event_t evt;
         xQueueReceive(timer_queue, &evt, portMAX_DELAY);
-        
         count_tp_action_manage_time();
-
         TP_POSITION_T position;
         if(get_tp_action_status() > 0 && get_tp_action_status() <= 2){
             get_ft6336_touch_sta(&position);
@@ -120,7 +127,17 @@ static void timer_evt_task(void *arg)
             if(position.status != 0)
                 set_tp_action_manage_stop_point(position.x,position.y);
         }
+    }
+}
 
+/*
+ * The main task of this example program 10ms/1次
+ */
+static void ui_timer_update_task(void *arg)
+{
+    while (1) {
+        timer_event_t evt;
+        xQueueReceive(ui_update_timer_queue, &evt, portMAX_DELAY);
         g_timer_event.timer_minute_count ++;
         //60s 计算一次 刷新时间
         if(g_timer_event.timer_minute_count >= 6000){
@@ -143,8 +160,11 @@ void ds_timer_init(void)
 {
     g_timer_event.timer_minute_count = 0;
     g_timer_event.timer_second_count = 0;
+    g_timer_event.timer_second_count_isr = 0;
     timer_queue = xQueueCreate(10, sizeof(timer_event_t));
+    ui_update_timer_queue = xQueueCreate(10, sizeof(timer_event_t));
     tg0_timer_init(TIMER_0, TEST_WITH_RELOAD, TIMER_INTERVAL0_SEC);
     xTaskCreate(timer_evt_task, "timer_evt_task", 2048, NULL, 5, NULL);
+    xTaskCreate(ui_timer_update_task, "ui_timer_update_task", 2048, NULL, 5, NULL);
 }
 

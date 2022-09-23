@@ -19,6 +19,7 @@
 
 #define GPIO_OUTPUT_IO_0    5
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0))
+// #define GPIO_INPUT_IO_0     4
 #define GPIO_INPUT_IO_0     34
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0))
 #define ESP_INTR_FLAG_DEFAULT 0
@@ -52,6 +53,7 @@ static void gpio_task_example(void* arg)
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
             if(io_num == GPIO_INPUT_IO_0){
+                set_tp_wackup_timeleft();
                 if(gpio_get_level(io_num) == 0){
                     //TODO START COUNT 
                     reset_tp_action_manage();
@@ -65,6 +67,7 @@ static void gpio_task_example(void* arg)
 }
 
 void ds_touch_gpio_init(){
+    static bool has_init_isr = false;
     gpio_config_t io_conf;
     //disable interrupt
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -92,16 +95,26 @@ void ds_touch_gpio_init(){
     //change gpio intrrupt type for one pin
     // gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_NEGEDGE);
 
-    //create a queue to handle gpio event from isr
-    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-    //start gpio task
-    xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
+    if(has_init_isr == false){
+        //create a queue to handle gpio event from isr
+        gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+        //start gpio task
+        xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
 
-    //install gpio isr service
-    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-    //hook isr handler for specific gpio pin
+        //install gpio isr service
+        gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+        //hook isr handler for specific gpio pin
+        gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
+    }
+    has_init_isr = true;
+}
+
+void ds_touch_gpio_isr_remove(){
+    gpio_isr_handler_remove(GPIO_INPUT_IO_0);
+}
+
+void ds_touch_gpio_isr_add(){
     gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
-
 }
 
 void ds_screen_gpio_init(){
@@ -135,15 +148,15 @@ void ds_screen_gpio_init(){
     //set as input mode    
     io_conf.mode = GPIO_MODE_INPUT;
     //enable pull-up mode
-    io_conf.pull_up_en = 0;
+    io_conf.pull_up_en = 1;
     gpio_config(&io_conf);
     //change gpio intrrupt type for one pin
     // gpio_set_intr_type(SCREEN_GPIO_INTPUT_BUSY, GPIO_INTR_NEGEDGE);
 
-    //install gpio isr service
-    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-    //hook isr handler for specific gpio pin
-    gpio_isr_handler_add(SCREEN_GPIO_INTPUT_BUSY, gpio_isr_handler, (void*) SCREEN_GPIO_INTPUT_BUSY);
+    // //install gpio isr service
+    // gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    // //hook isr handler for specific gpio pin
+    // gpio_isr_handler_add(SCREEN_GPIO_INTPUT_BUSY, gpio_isr_handler, (void*) SCREEN_GPIO_INTPUT_BUSY);
 }
 
 void ds_gpio_init(){

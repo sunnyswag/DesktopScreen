@@ -48,13 +48,14 @@ void int_to_char(char *result,int val){
 }
 
 int page_count = 0;
+
 void ds_ui_fans_show_init(uint8_t type){
     g_fans_page.updateing = 1;
 
     uint8_t *m_custom_image;
     if ((m_custom_image = (uint8_t *)malloc(IMAGE_SIZE)) == NULL) {
       printf("Failed to apply for black memory...\r\n");
-      return -1;
+      return;
     }
     Paint_NewImage(m_custom_image, EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT, 0, WHITE);
     Paint_SelectImage(m_custom_image);

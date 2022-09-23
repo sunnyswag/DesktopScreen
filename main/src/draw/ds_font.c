@@ -34,7 +34,7 @@ static x_header_t __g_xbf_hd = {
 
 static uint8_t __g_font_buf[300];//如bin文件存在SPI FLASH可使用此buff
 
-esp_partition_t* partition_res=NULL;
+const esp_partition_t* partition_res=NULL;
 
 static uint8_t *user_font_getdata(int offset, int size)
 {

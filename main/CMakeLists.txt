@@ -10,6 +10,8 @@ idf_component_register(
                                 "src/net/ds_http_server.c"
                                 "src/net/ds_wifi_sta.c"
                                 "src/net/ds_http_request.c"
+                                "src/net/ds_wifi_ap_sta.c"
+                                "src/net/ds_dns_server.c"
 
                                 "src/driver/ds_ft6336.c"
                                 "src/driver/ds_screen.c"
@@ -23,6 +25,7 @@ idf_component_register(
                                 "src/hal/ds_i2c.c"
                                 "src/hal/ds_nvs.c"
                                 "src/hal/ds_spi.c"
+                                "src/hal/ds_pwm.c"
 
                                 "src/ui/ds_ui_timepage.c"
                                 "src/ui/ds_ui_page_manage.c"

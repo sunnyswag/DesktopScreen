@@ -9,7 +9,7 @@ ROTATE_IMAGE Epd_Rotate = ROTATE_90;
 uint8_t UTF8toUnicode(uint8_t *ch, uint16_t *_unicode)
 {
     uint8_t *p = NULL ,n = 0;
-    uint16_t e = 0;
+    uint32_t e = 0;
     p = ch;
     if(1)//p == NULL
     {
@@ -246,8 +246,8 @@ void Paint_DrawPoint(UWORD Xpoint, UWORD Ypoint, UWORD Color,
     if (Dot_Style == DOT_FILL_AROUND) {
         for (XDir_Num = 0; XDir_Num < 2 * Dot_Pixel - 1; XDir_Num++) {
             for (YDir_Num = 0; YDir_Num < 2 * Dot_Pixel - 1; YDir_Num++) {
-                if(Xpoint + XDir_Num - Dot_Pixel < 0 || Ypoint + YDir_Num - Dot_Pixel < 0)
-                    break;
+                // if((Xpoint + XDir_Num - Dot_Pixel) < 0 || (Ypoint + YDir_Num - Dot_Pixel) < 0)
+                //     break;
                 // printf("x = %d, y = %d\r\n", Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel);
                 Paint_SetPixel(Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel, Color);
             }
@@ -437,8 +437,7 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
                         UWORD Color_Foreground, UWORD Color_Background)
 {
     const char* pstr = pString;
-    int x = Xstart, y = Ystart;
-    int i, j,Num;
+    int i;
     uint8_t  bitmap[300];
     i = 0;
     uint16_t char_cn_un = 0;
@@ -453,8 +452,8 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
     {
         memset(&bitmap,0,sizeof(bitmap));
         UTF8toUnicode((uint8_t*)pstr+i,&char_cn_un);
-        uint8_t box_w,box_h = 0;
-        uint8_t offset_x,offset_y = 0;
+        uint8_t box_w = 0,box_h = 0;
+        uint8_t offset_x = 0,offset_y = 0;
         int size = ds_get_bitmap(char_cn_un,bitmap,&box_w,&box_h,&offset_x,&offset_y);
             
         uint8_t page_len = box_h;  //box_h
@@ -490,7 +489,7 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
     }
 }
 
-void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, unsigned char *pbuf ,int plen,int pxsize,
+void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pbuf ,int plen,int pxsize,
                         UWORD Color_Foreground, UWORD Color_Background)
 {
     uint8_t width = (pxsize%8 == 0) ? (pxsize/8) : (pxsize/8+1);

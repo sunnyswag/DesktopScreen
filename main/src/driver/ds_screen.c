@@ -10,32 +10,33 @@
 #include "ds_gpio.h"
 #include "ds_spi.h"
 #include "ds_data_image.h"
+#include "ds_data_page.h"
 
 /*************************EPD display init function******************************************************/
 //LUT download
-static void lut(void)
-{
-	unsigned int count;
-	spi_send_cmd(0x20);
-	for(count=0;count<44;count++)	     
-		{spi_send_data(lut_vcomDC[count]);}
+// static void lut(void)
+// {
+// 	unsigned int count;
+// 	spi_send_cmd(0x20);
+// 	for(count=0;count<44;count++)	     
+// 		{spi_send_data(lut_vcomDC[count]);}
 
-	spi_send_cmd(0x21);
-	for(count=0;count<42;count++)	     
-		{spi_send_data(lut_ww[count]);}   
+// 	spi_send_cmd(0x21);
+// 	for(count=0;count<42;count++)	     
+// 		{spi_send_data(lut_ww[count]);}   
 	
-	spi_send_cmd(0x22);
-	for(count=0;count<42;count++)	     
-		{spi_send_data(lut_bw[count]);} 
+// 	spi_send_cmd(0x22);
+// 	for(count=0;count<42;count++)	     
+// 		{spi_send_data(lut_bw[count]);} 
 
-	spi_send_cmd(0x23);
-	for(count=0;count<42;count++)	     
-		{spi_send_data(lut_wb[count]);} 
+// 	spi_send_cmd(0x23);
+// 	for(count=0;count<42;count++)	     
+// 		{spi_send_data(lut_wb[count]);} 
 
-	spi_send_cmd(0x24);
-	for(count=0;count<42;count++)	     
-		{spi_send_data(lut_bb[count]);} 
-}
+// 	spi_send_cmd(0x24);
+// 	for(count=0;count<42;count++)	     
+// 		{spi_send_data(lut_bb[count]);} 
+// }
 
 static void lut1(void)
 {
@@ -61,57 +62,101 @@ static void lut1(void)
 		{spi_send_data(lut_bb1[count]);}   
 }
 
+
+
+
+void EPD_display_Clean(void)
+{
+	unsigned int i;
+	spi_send_cmd(0x10);
+	for(i=0;i<2888;i++)	     
+	{
+		spi_send_data(0xff);  
+	}  
+	vTaskDelay(2 / portTICK_PERIOD_MS);
+	spi_send_cmd(0x13);
+	for(i=0;i<2888;i++)	 
+	{
+		spi_send_data(0xff);  
+	}  
+	vTaskDelay(2 / portTICK_PERIOD_MS);
+}
+
 //Detection busy
 static void lcd_chkstatus(void)
 {
-	int busy;
+	int count = 0;
+	unsigned char busy;
 	do
 	{
 		spi_send_cmd(0x71);
-		busy = ds_gpio_get_screen_busy();    
+		busy = ds_gpio_get_screen_busy();
+		busy =!(busy & 0x01);        
+		vTaskDelay(10 / portTICK_PERIOD_MS);  
+		count ++;
+		if(count >= 20)
+			break;                  
 	}
 	while(busy);   
-	// vTaskDelay(100 / portTICK_PERIOD_MS);                
-}	
+	vTaskDelay(200 / portTICK_PERIOD_MS);                    
+}		
 
 static void init_display(){
 	vTaskDelay(10 / portTICK_PERIOD_MS);
     ds_gpio_set_screen_rst(0);		// Module reset
 	vTaskDelay(10 / portTICK_PERIOD_MS);
 	ds_gpio_set_screen_rst(1);
-
-	spi_send_cmd(0x01);			//POWER SETTING 
-	spi_send_data (0x03);	          
-	spi_send_data (0x00);
-	spi_send_data (0x2b);
-	spi_send_data (0x2b);
-	spi_send_data (0x03);
-
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	
 	spi_send_cmd(0x06);         //boost soft start
-	spi_send_data (0x17);		//A
-	spi_send_data (0x17);		//B
-	spi_send_data (0x17);		//C       
+	spi_send_data (0x17);				//A	
+	spi_send_data (0x17);				//B
+	spi_send_data (0x17);				//C       
 
 	spi_send_cmd(0x04);  
 	lcd_chkstatus();
 
-	spi_send_cmd(0x00);			//panel setting
-	spi_send_data(0xbf);		//LUT from OTP,128x296
-	spi_send_data(0x0d);		//VCOM to 0V fast
-		
-	spi_send_cmd(0x30);			//PLL setting
-    spi_send_data (0x3a);   	// 3a 100HZ   29 150Hz 39 200HZ	31 171HZ
+	spi_send_cmd(0x00);					//panel setting
+	spi_send_data(0x1f);				//LUT from OTP£¬128x296
+	spi_send_data(0x0d);     		//VCOM to 0V
 
-	spi_send_cmd(0x61);			//resolution setting
+	spi_send_cmd(0x61);					//resolution setting
 	spi_send_data (0x98);        	 
 	spi_send_data (0x00);		
 	spi_send_data (0x98);
-		
-	spi_send_cmd(0x82);			//vcom_DC setting  	
-    spi_send_data (0x28);	
 
-	spi_send_cmd(0X50);			//VCOM AND DATA INTERVAL SETTING			
-	spi_send_data(0x97);		//WBmode:VBDF 17|D7 VBDW 97 VBDB 57		WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
+	spi_send_cmd(0X50);					//VCOM AND DATA INTERVAL SETTING			
+	spi_send_data(0x97);				//WBmode:VBDF 17|D7 VBDW 97 VBDB 57	 17|D7 VBDW 97 VBDB 57		WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
+}
+
+void init_display_partial(void)
+{
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+    ds_gpio_set_screen_rst(0);		// Module reset
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	ds_gpio_set_screen_rst(1);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	
+	spi_send_cmd(0x06);         //boost soft start
+	spi_send_data (0x17);				//A	
+	spi_send_data (0x17);				//B
+	spi_send_data (0x17);				//C       
+
+	spi_send_cmd(0x04);  
+	lcd_chkstatus();
+
+	spi_send_cmd(0x00);					//panel setting
+	// spi_send_data(0xb7);				//LUT from OTP£¬128x296
+	spi_send_data(0xbf);				//LUT from OTP£¬128x296
+	spi_send_data(0x0d);     		//VCOM to 0V
+
+	spi_send_cmd(0x30);					//PLL setting
+    spi_send_data (0x3c);      	//100hz 
+
+	spi_send_cmd(0x61);					//resolution setting
+	spi_send_data (0x98);        	 
+	spi_send_data (0x00);		
+	spi_send_data (0x98);
 }
 
 /////////////////////////////Enter deep sleep mode////////////////////////
@@ -123,6 +168,14 @@ static void deep_sleep(void) //Enter deep sleep mode
   	lcd_chkstatus();
 	spi_send_cmd(0X07);  	//deep sleep
 	spi_send_data(0xA5);
+}
+
+
+void refresh(void)
+{
+	spi_send_cmd(0x12);					//DISPLAY REFRESH 	
+	vTaskDelay(100 / portTICK_PERIOD_MS);	        //!!!The delay here is necessary, 200uS at least!!!     
+	lcd_chkstatus();
 }
 
 //图片全刷-全白函数
@@ -158,21 +211,16 @@ void ds_screen_full_display_data(const uint8_t *data){
 void ds_screen_full_display(void pic_display(void)){
 	init_display();
 	pic_display(); 				//picture
-    lut(); 						//Power settings
-	spi_send_cmd(0x12);			//DISPLAY REFRESH 	
-	lcd_chkstatus();
+	refresh();														//EPD_refresh		
 	deep_sleep();
-
 }
 
 //全刷 带数据
 void ds_screen_full_display_bydata(void display_func(const uint8_t *data),const uint8_t *data){
 	init_display();
 	display_func(data); 				//picture
-    lut(); 						//Power settings
-	spi_send_cmd(0x12);			//DISPLAY REFRESH 	
-	lcd_chkstatus();
-	deep_sleep();
+	refresh();														//EPD_refresh		
+	deep_sleep();	
 }
 
 //局部刷 不带数据
@@ -180,7 +228,7 @@ void ds_screen_partial_display(unsigned int x_start,unsigned int x_end,unsigned 
 								void partial_old(void),
 								void partial_new(void))
 {
-	init_display();
+	init_display_partial();
 	spi_send_cmd(0x82);			//vcom_DC setting  	
     spi_send_data (0x08);	
 	spi_send_cmd(0X50);
@@ -196,17 +244,15 @@ void ds_screen_partial_display(unsigned int x_start,unsigned int x_end,unsigned 
 		
 	spi_send_data (y_end/256);		
 	spi_send_data (y_end%256-1);  //y-end
-	spi_send_data (0x28);	
+	spi_send_data (0x00);	
 
 	spi_send_cmd(0x10);	       //writes Old data to SRAM for programming
 	partial_old();
 	spi_send_cmd(0x13);		   //writes New data to SRAM.
 	partial_new();
     	
-	spi_send_cmd(0x12);		 //DISPLAY REFRESH 		 
-	lcd_chkstatus();
+	refresh();
 	deep_sleep();
-	vTaskDelay(200 / portTICK_PERIOD_MS);  
 }
 
 //局部刷 带数据
@@ -214,7 +260,7 @@ void ds_screen_partial_display_bydata(unsigned int x_start,unsigned int x_end,un
 										void partial_old(const uint8_t *data),const uint8_t *old_data,
 										void partial_new(const uint8_t *data),const uint8_t *new_data) 
 {
-	init_display();
+	init_display_partial();
 	spi_send_cmd(0x82);			//vcom_DC setting  	
     spi_send_data (0x08);	
 	spi_send_cmd(0X50);
@@ -230,17 +276,15 @@ void ds_screen_partial_display_bydata(unsigned int x_start,unsigned int x_end,un
 		
 	spi_send_data (y_end/256);		
 	spi_send_data (y_end%256-1);  //y-end
-	spi_send_data (0x28);	
+	spi_send_data (0x00);		
 
 	spi_send_cmd(0x10);	       //writes Old data to SRAM for programming
 	partial_old(old_data);
 	spi_send_cmd(0x13);		   //writes New data to SRAM.
 	partial_new(new_data);
     	
-	spi_send_cmd(0x12);		 //DISPLAY REFRESH 		 
-	lcd_chkstatus();
+	refresh();
 	deep_sleep();
-	vTaskDelay(200 / portTICK_PERIOD_MS);   
 }
 
 uint8_t partial_data[152][19];
@@ -271,7 +315,7 @@ void ds_screen_partial_data_add(unsigned int x_start,unsigned int x_end,unsigned
 	//90 126
 	// printf("x_data_location %d x_size%d\n",x_data_location,x_size);
 	// printf("ystart %d y_end%d\n",y_start,y_end);
-	int status = 0;
+	// int status = 0;
 	for(int x_index = y_start ;x_index < y_end;x_index ++){
 		for(int y_index = x_data_location ;y_index < (x_data_location+x_size);y_index ++){
 			partial_data[x_index][y_index] = (~data[data_index]);
@@ -310,18 +354,13 @@ void init_screen_interface(){
     screen_spi_init();
 }
 
-//初始化
-void ds_screen_init(){
-	ds_screen_full_display(ds_screen_display_white);
-}
-
 //清屏为白色
 void ds_screen_clean_white(){
 	ds_screen_init();
 	vTaskDelay(2000 / portTICK_PERIOD_MS);      
 }
 
-
-
-
-
+//初始化
+void ds_screen_init(){
+	ds_screen_full_display(ds_screen_display_white);														//EPD_sleep
+}

@@ -26,6 +26,8 @@
 
 #include "ds_spiffs.h"
 #include "ds_system_data.h"
+#include "ds_nvs.h"
+#include "ds_wifi_ap_sta.h"
 
 
 char user_id[20];
@@ -433,8 +435,9 @@ static esp_err_t send_wifi_handler(httpd_req_t *req)
 
     char *ssid = cJSON_GetObjectItem(root, "wifi_name")->valuestring;
     char *psw = cJSON_GetObjectItem(root, "wifi_code")->valuestring;
-    set_system_data_wifi_info(ssid,psw);
+    ds_nvs_save_wifi_info(ssid,psw);
     print_system_data_wifi_info();
+    ds_wifi_send_event(AP_STA_UPDATE);
     cJSON_Delete(root);
     httpd_resp_sendstr(req, "Post control value successfully");
     return ESP_OK;
@@ -540,7 +543,6 @@ static esp_err_t send_back_handler(httpd_req_t *req)
     }
     buf[total_len] = '\0';
     printf("\r\n send_back_handler!\r\n");
-    set_setting_status(SETTING_FINISH);
     httpd_resp_sendstr(req, "Post control back successfully");
     return ESP_OK;
 }

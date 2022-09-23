@@ -12,6 +12,10 @@ extern const unsigned char gImage_TH[];
 extern const unsigned char gImage_rest[]; 
 //工作
 extern const unsigned char gImage_work[]; 
+//点击开始
+const unsigned char gImage_click_start[];
+//完成计划
+const unsigned char gImage_tomato_finish[];
 //返回
 extern unsigned char gImage_back[];
 //增加
