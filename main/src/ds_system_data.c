@@ -248,7 +248,7 @@ void clear_tp_action(){
 
 void set_tp_wackup_timeleft(){
     //600/1s 10min
-    g_system_data.tp_wackup_timeleft = 60;
+    g_system_data.tp_wackup_timeleft = 600;
 }
 
 void count_tp_wackup_timeleft(){

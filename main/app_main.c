@@ -56,7 +56,7 @@
 #define CHIP_NAME "ESP32-S2 Beta"
 #endif
 
-#define BUTTON_GPIO_NUM_DEFAULT  34
+#define BUTTON_GPIO_NUM_DEFAULT  4
 #define TWDT_TIMEOUT_S          3
 
 static void sleep_mode_init(){
@@ -144,7 +144,7 @@ static void background_task(void* arg)
         //关闭wifi AP&STA 计时
         if(get_is_ap_sta_open() == true && apsta_close_count == 0){
             //重置10min计时
-            apsta_close_count = (60 - 10);
+            apsta_close_count = (600 - 10);
         }
         if(apsta_close_count > 0){
             apsta_close_count --;

@@ -92,7 +92,7 @@ static void ds_wifi_ap_sta_start(void)
         .ap = {
             .ssid = CONFIG_ESP_AP_WIFI_SSID,
             .ssid_len = strlen(CONFIG_ESP_AP_WIFI_SSID),
-            .channel = CONFIG_ESP_AP_WIFI_CHANNEL,
+            .channel = 11,
             .password = CONFIG_ESP_AP_WIFI_PASSWORD,
             .max_connection = CONFIG_ESP_AP_MAX_STA_CONN,
             .authmode = WIFI_AUTH_OPEN

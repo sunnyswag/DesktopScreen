@@ -94,11 +94,13 @@ static void lcd_chkstatus(void)
 		busy =!(busy & 0x01);        
 		vTaskDelay(10 / portTICK_PERIOD_MS);  
 		count ++;
-		if(count >= 20)
+		if(count >= 1000){
+			printf("---------------time out ---\n");
 			break;                  
+		}
 	}
 	while(busy);   
-	vTaskDelay(200 / portTICK_PERIOD_MS);                    
+	// vTaskDelay(200 / portTICK_PERIOD_MS);                    
 }		
 
 static void init_display(){
@@ -107,6 +109,13 @@ static void init_display(){
 	vTaskDelay(10 / portTICK_PERIOD_MS);
 	ds_gpio_set_screen_rst(1);
 	vTaskDelay(10 / portTICK_PERIOD_MS);
+
+	spi_send_cmd(0x01);
+	spi_send_data(0x03);
+	spi_send_data(0x00);
+	spi_send_data(0x2b);
+	spi_send_data(0x2b);
+	spi_send_data(0x03);
 	
 	spi_send_cmd(0x06);         //boost soft start
 	spi_send_data (0x17);				//A	
@@ -157,6 +166,9 @@ void init_display_partial(void)
 	spi_send_data (0x98);        	 
 	spi_send_data (0x00);		
 	spi_send_data (0x98);
+
+	spi_send_cmd(0X50);					//VCOM AND DATA INTERVAL SETTING			
+	spi_send_data(0x97);				//WBmode:VBDF 17|D7 VBDW 97 VBDB 57	 17|D7 VBDW 97 VBDB 57		WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
 }
 
 /////////////////////////////Enter deep sleep mode////////////////////////
@@ -174,7 +186,7 @@ static void deep_sleep(void) //Enter deep sleep mode
 void refresh(void)
 {
 	spi_send_cmd(0x12);					//DISPLAY REFRESH 	
-	vTaskDelay(100 / portTICK_PERIOD_MS);	        //!!!The delay here is necessary, 200uS at least!!!     
+	// vTaskDelay(100 / portTICK_PERIOD_MS);	        //!!!The delay here is necessary, 200uS at least!!!     
 	lcd_chkstatus();
 }
 
