@@ -23,6 +23,9 @@ typedef struct
     uint8_t temperature; 
     uint8_t humidity;
     uint8_t updateing;
+
+    //局部刷新次数
+    uint8_t partial_update_time;
 }TIME_PAGE_T;
 
 TIME_PAGE_T g_time_page;
@@ -177,8 +180,15 @@ void ds_ui_timepage_updatetime(){
     g_time_page.hour = get_system_data().hour;
     g_time_page.minute = get_system_data().minute;
     if(g_time_page.updateing == 0){
-        if(ds_ui_get_now_show_page() == PAGE_TYPE_TIME)
-            ds_ui_timepage_show_time(1);
+        if(ds_ui_get_now_show_page() == PAGE_TYPE_TIME){
+            if(g_time_page.partial_update_time > 5){
+                g_time_page.partial_update_time = 0;
+                ds_ui_timepage_show_time_init();
+            }else{
+                g_time_page.partial_update_time ++;
+                ds_ui_timepage_show_time(1);
+            }
+        }
     }
 }
 

@@ -42,6 +42,7 @@ typedef struct
     uint8_t times;
 
     //运行时间&次数统计
+    uint8_t hour;
     uint8_t minute; 
     uint8_t second;
     uint8_t timescount;
@@ -49,11 +50,15 @@ typedef struct
     //缓存上次刷新数据
     uint8_t second_last;
     uint8_t minute_last;
+    uint8_t hour_last;
 
     //倒计时类型
     TOMATO_PAGE_TYPE_E work_type;
     //当前页面工作状态
     TOMATO_PAGE_STATUS_E work_status;
+
+    //局部刷新次数
+    uint8_t partial_update_time;
 }TOMATO_PAGE_T;
 
 TOMATO_PAGE_T g_tomato_page;
@@ -83,28 +88,28 @@ static void ds_ui_tomatopage_update(){
     int horizontal = 8;  //水平位置
     int last_index,now_index;
     //小时 十位
-    last_index = g_tomato_page.minute_last / 10;
-    now_index = g_tomato_page.minute / 10;
+    last_index = g_tomato_page.hour_last / 10;
+    now_index = g_tomato_page.hour / 10;
     if(last_index != now_index)
         ds_screen_partial_display_bydata(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
     // //小时 个位
-    last_index = g_tomato_page.minute_last % 10;
-    now_index = g_tomato_page.minute % 10;
+    last_index = g_tomato_page.hour_last % 10;
+    now_index = g_tomato_page.hour % 10;
     if(last_index != now_index)
         ds_screen_partial_display_bydata(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
     //分钟 十位 10 *8 = 80  14*8 112
-    last_index = g_tomato_page.second_last / 10;
-    now_index = g_tomato_page.second / 10;
+    last_index = g_tomato_page.minute_last / 10;
+    now_index = g_tomato_page.minute / 10;
     if(last_index != now_index)
         ds_screen_partial_display_bydata(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
     // //分钟 个位
-    last_index = g_tomato_page.second_last % 10;
-    now_index = g_tomato_page.second % 10;
+    last_index = g_tomato_page.minute_last % 10;
+    now_index = g_tomato_page.minute % 10;
     if(last_index != now_index)
         ds_screen_partial_display_bydata(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
         
+    g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
-    g_tomato_page.second_last = g_tomato_page.second;
     g_tomato_page.is_updateing = false;
 }
 
@@ -115,23 +120,23 @@ void ds_ui_tomatopage_show_init(){
 	int vertical = 35; //垂直位置
     int horizontal = 8;  //水平位置
     int now_index;
+    g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
-    g_tomato_page.second_last = g_tomato_page.second;
     
     ds_screen_partial_data_init();
     //小时 十位
-    now_index = g_tomato_page.minute / 10;
+    now_index = g_tomato_page.hour / 10;
     ds_screen_partial_data_add(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
     //小时 个位
-    now_index = g_tomato_page.minute % 10;
+    now_index = g_tomato_page.hour % 10;
     ds_screen_partial_data_add(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
     //首次刷新才显示 :号
     ds_screen_partial_data_add(horizontal+num_size*2,horizontal+num_size*2+8,vertical,vertical+num_size_y,gImage_time_symbol);
     //分钟 十位
-    now_index = g_tomato_page.second / 10;
+    now_index = g_tomato_page.minute / 10;
     ds_screen_partial_data_add(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
     // //分钟 个位
-    now_index = g_tomato_page.second % 10;
+    now_index = g_tomato_page.minute % 10;
     ds_screen_partial_data_add(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
 
     //图标
@@ -197,19 +202,27 @@ void ds_ui_tomatopage_updatetime(){
             }
             //每轮刷新
             if(ds_ui_get_now_show_page() == PAGE_TYPE_TOMATO){
+                g_tomato_page.partial_update_time = 0;
                 ds_ui_tomatopage_show_init();
                 return;
             }
         }else{
             g_tomato_page.minute --;
             g_tomato_page.second = 59;
+            if(ds_ui_get_now_show_page() == PAGE_TYPE_TOMATO){
+                //局部刷新大于5次时，全局刷新
+                if(g_tomato_page.partial_update_time > 5){
+                    g_tomato_page.partial_update_time = 0;
+                    ds_ui_tomatopage_show_init();
+                }else{
+                    g_tomato_page.partial_update_time++;
+                    ds_ui_tomatopage_update(true);
+                }
+            }
         }
     }else{
         g_tomato_page.second --;
     }
-    //每秒刷新
-    if(ds_ui_get_now_show_page() == PAGE_TYPE_TOMATO)
-        ds_ui_tomatopage_update(true);
 }
 
 void ds_ui_tomatopage_time_set(uint8_t work_time,uint8_t rest_time,uint8_t times){
@@ -218,12 +231,13 @@ void ds_ui_tomatopage_time_set(uint8_t work_time,uint8_t rest_time,uint8_t times
     g_tomato_page.rest_time = rest_time;
     g_tomato_page.times = times;
     g_tomato_page.minute = work_time;
-    g_tomato_page.second = 0;
+    g_tomato_page.second = 30;
 }
 
 void ds_ui_tomatopage_init(){
     memset(&g_tomato_page,0,sizeof(TOMATO_PAGE_T));
     ds_nvs_read_tomato_time(&g_tomato_page.work_time,&g_tomato_page.rest_time,&g_tomato_page.times);
+    g_tomato_page.hour = 0;
     g_tomato_page.minute = g_tomato_page.work_time;
     g_tomato_page.work_status = TOMATO_COUNT_STOP;
     g_tomato_page.work_type = TOMATO_TYPE_WORK;
