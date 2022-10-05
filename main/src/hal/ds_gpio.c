@@ -53,7 +53,7 @@ static void gpio_task_example(void* arg)
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
             if(io_num == GPIO_INPUT_IO_0){
-                set_tp_wackup_timeleft();
+                set_tp_wackup_timeleft(600);
                 if(gpio_get_level(io_num) == 0){
                     //TODO START COUNT 
                     reset_tp_action_manage();

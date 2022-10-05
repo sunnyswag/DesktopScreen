@@ -62,7 +62,7 @@
 static void sleep_mode_init(){
 
     while (true) {
-        set_tp_wackup_timeleft();
+        set_tp_wackup_timeleft(600);
         
         //ap&sta关闭、且当前在主页、且超过5min未触摸时才进入低功耗
         do {
@@ -77,8 +77,8 @@ static void sleep_mode_init(){
 
         ds_touch_gpio_isr_remove();
         gpio_wakeup_enable(BUTTON_GPIO_NUM_DEFAULT,GPIO_INTR_LOW_LEVEL);
-        /* Wake up in 20 seconds, or when button is pressed */
-        // esp_sleep_enable_timer_wakeup(20000000);
+        /* Wake up in 60 seconds, or when button is pressed */
+        // esp_sleep_enable_timer_wakeup(60000000);
         esp_sleep_enable_gpio_wakeup();
 
         printf("Entering light sleep\n");
@@ -95,9 +95,11 @@ static void sleep_mode_init(){
 
         /* Determine wake up reason */
         const char* wakeup_reason;
+        uint32_t wackup_timeleft = 600;
         switch (esp_sleep_get_wakeup_cause()) {
             case ESP_SLEEP_WAKEUP_TIMER:
                 wakeup_reason = "timer";
+                wackup_timeleft = 5;
                 break;
             case ESP_SLEEP_WAKEUP_GPIO:
                 wakeup_reason = "pin";
@@ -109,7 +111,7 @@ static void sleep_mode_init(){
         printf("Returned from light sleep, reason: %s, t=%lld ms, slept for %lld ms\n",
                 wakeup_reason, t_after_us / 1000, (t_after_us - t_before_us) / 1000);
 
-        set_tp_wackup_timeleft();
+        set_tp_wackup_timeleft(wackup_timeleft);
         gpio_wakeup_disable(BUTTON_GPIO_NUM_DEFAULT);
         esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
         ds_touch_gpio_init();
@@ -217,6 +219,7 @@ void app_main(void)
         //未存储wifi联网信息
         ds_ui_page_manage_send_action(PAGE_TYPE_SETTING);
     }
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
     //http请求初始化
     ds_http_request_init();
     //ap&sta模式初始化

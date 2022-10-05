@@ -137,7 +137,7 @@ void set_tp_action_manage_start_point(uint16_t x,uint16_t y);
 void count_tp_action_manage_time(void);
 void reset_tp_action_manage(void);
 
-void set_tp_wackup_timeleft();
+void set_tp_wackup_timeleft(uint32_t timeleft);
 void count_tp_wackup_timeleft();
 uint32_t get_tp_wackup_timeleft();
 

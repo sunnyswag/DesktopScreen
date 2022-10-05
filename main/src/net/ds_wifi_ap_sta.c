@@ -11,6 +11,8 @@
 #include "ds_system_data.h"
 #include "ds_http_server.h"
 #include "ds_dns_server.h"
+#include "ds_pwm.h"
+#include "ds_ui_page_manage.h"
 
 #define TAG  "app_sta_ap"
 
@@ -45,6 +47,8 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "connect success ! got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
+        send_beep_event(BEEP_SHORT_500MS);
+        ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
         set_wifi_sta_status(WIFI_STA_MODE_CONNECT_SUCCESS);
     }
 
@@ -53,6 +57,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
         wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
         ESP_LOGI(TAG, "station "MACSTR" join, AID=%d", MAC2STR(event->mac), event->aid);
         set_wifi_ap_status(WIFI_AP_MODE_CONNECT);
+        send_beep_event(BEEP_SHORT_500MS);
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
         ESP_LOGI(TAG, "station "MACSTR" leave, AID=%d", MAC2STR(event->mac), event->aid);

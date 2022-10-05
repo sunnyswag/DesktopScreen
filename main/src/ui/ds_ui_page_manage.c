@@ -8,6 +8,7 @@
 #include "ds_ui_tomatopage.h"
 #include "ds_http_request.h"
 #include "ds_ui_fans.h"
+#include "ds_pwm.h"
 
 static const char *TAG = "DS_UI_PAGE_MANAGE";
 
@@ -48,6 +49,7 @@ void ds_ui_page_manage_send_event(TP_ACTION_E key,uint8_t touch_x,uint8_t touch_
 			}
 		}
 	}
+	send_beep_event_from_isr(BEEP_SHORT_100MS);
 	xQueueSendFromISR(ui_event_queue, &evt, NULL);
 }
 

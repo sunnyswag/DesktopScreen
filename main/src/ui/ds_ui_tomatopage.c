@@ -15,6 +15,9 @@
 #include "ds_data_num.h"
 #include "ds_nvs.h"
 
+#include "ds_pwm.h"
+
+
 typedef enum{
     //工作倒计时
     TOMATO_TYPE_WORK = 0,
@@ -163,7 +166,6 @@ void ds_ui_tomatopage_show_init(){
     vertical = 0;
     ds_screen_partial_data_add(0,num_size,vertical,vertical+num_size,gImage_back);
     ds_screen_partial_data_copy();
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
     g_tomato_page.is_updateing = false;
 }
 
@@ -197,6 +199,7 @@ void ds_ui_tomatopage_updatetime(){
                     g_tomato_page.minute = g_tomato_page.work_time;
                 }
             }else{
+                send_beep_event(BEEP_LONG);
                 //TODO finish
                 g_tomato_page.work_status = TOMATO_COUNT_FINISH;
             }

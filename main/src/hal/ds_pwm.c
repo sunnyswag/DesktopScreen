@@ -12,6 +12,7 @@
 #include "driver/mcpwm.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "ds_pwm.h"
 
 static xQueueHandle beep_queue = NULL;
 
@@ -35,23 +36,50 @@ static void beep_task(void* arg)
     uint32_t evt;
     for(;;) {
         if(xQueueReceive(beep_queue, &evt, portMAX_DELAY)) {
-            ds_beep_start();
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-            ds_beep_stop();
+            if(evt == BEEP_SHORT_100MS){
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+            }else if(evt == BEEP_SHORT_500MS){
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+            }else if(evt == BEEP_LONG){
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_start();
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                ds_beep_stop();
+            }
         }
     }
 }
 
-void send_beep_event(){
-    uint32_t evt = 0;
+void send_beep_event(BEEP_TYPE_E type){
+    uint32_t evt = type;
 	xQueueSend(beep_queue, &evt, 0);
+}
+
+void send_beep_event_from_isr(BEEP_TYPE_E type){
+    uint32_t evt = type;
+    xQueueSendFromISR(beep_queue, &evt, 0);
 }
 
 void ds_pwm_init(void)
 {
     mcpwm_gpio_init(MCPWM_UNIT_1, MCPWM1A, SERVO_PULSE_GPIO); // To drive a RC servo, one MCPWM generator is enough
     mcpwm_config_t pwm_config = {
-        .frequency = 2000, // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
+        .frequency = 4000, // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
         .cmpr_a = 0,     // duty cycle of PWMxA = 0
         .counter_mode = MCPWM_UP_COUNTER,
         .duty_mode = MCPWM_DUTY_MODE_0,
