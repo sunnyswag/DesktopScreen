@@ -192,6 +192,12 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    //http请求初始化
+    ds_http_request_init();
+    //ap&sta模式初始化
+    ds_wifi_ap_sta_init();   
+
     // //屏幕、TP外设初始化相关
     init_ft6336();
     init_screen_interface();
@@ -219,12 +225,9 @@ void app_main(void)
         //未存储wifi联网信息
         ds_ui_page_manage_send_action(PAGE_TYPE_SETTING);
     }
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    //http请求初始化
-    ds_http_request_init();
-    //ap&sta模式初始化
-    ds_wifi_ap_sta_init();   
+
     //启动AP&STA模式
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
     ds_wifi_send_event(AP_STA_START);
     xTaskCreate(background_task, "background_task", 4096, NULL, 10, NULL); 
     

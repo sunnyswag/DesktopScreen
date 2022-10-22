@@ -227,6 +227,9 @@ void check_tp_action(){
     }
     //1.5s
     if(m_manage->tp_interval_timecount > 150){
+        if(m_manage->tp_start_x != 0 && m_manage->tp_start_y != 0 &&m_manage->tp_stop_x != 0 &&m_manage->tp_stop_y != 0){
+            return;
+        }
         ESP_LOGI(TAG,"action TP_ACTION_LONG");
         g_system_data.tp_action_manage.tp_action = TP_ACTION_LONG;
         ds_ui_page_manage_send_event(g_system_data.tp_action_manage.tp_action,g_system_data.tp_action_manage.tp_start_x,g_system_data.tp_action_manage.tp_start_y);
