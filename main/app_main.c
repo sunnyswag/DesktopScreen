@@ -227,7 +227,7 @@ void app_main(void)
     }
 
     //启动AP&STA模式
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    // vTaskDelay(2000 / portTICK_PERIOD_MS);
     ds_wifi_send_event(AP_STA_START);
     xTaskCreate(background_task, "background_task", 4096, NULL, 10, NULL); 
     
