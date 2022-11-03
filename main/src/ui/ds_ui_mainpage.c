@@ -16,8 +16,8 @@
 
 void ds_ui_back_main_page(void){
     unsigned int i;
-	for(i=0;i<2888;i++){
-		spi_send_data(~gImage_main_page[i]);  
+	for(i=0;i<5000;i++){
+		spi_send_data(gImage_main_page[i]);  
 	} 
 }
 

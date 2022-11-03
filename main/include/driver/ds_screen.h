@@ -23,5 +23,6 @@ void ds_screen_partial_data_init();
 void ds_screen_partial_data_add(unsigned int x_start,unsigned int x_end,unsigned int y_start,unsigned int y_end ,const uint8_t *data);
 void ds_screen_partial_data_copy();
 
+void ds_screen_partial_test(void);
 #endif
 

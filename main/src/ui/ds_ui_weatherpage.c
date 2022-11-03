@@ -34,6 +34,9 @@ typedef struct
 
 }WEATHER_PAGE_T;
 
+//200*200 像素屏幕适配，偏移值
+static int offset_v = 20; 
+static int offset_h = 20; 
 WEATHER_PAGE_T g_weather_page;
 
 
@@ -56,7 +59,8 @@ void ds_ui_weather_set(VALUE_TYPE_T type,char *value){
 void ds_ui_weather_show(uint8_t type){
 
     g_weather_page.updateing = 1;
-
+	int vertical = 80 +offset_v; //垂直位置
+    int horizontal = 30 + offset_h;  //水平位置
     uint8_t *m_custom_image;
     if ((m_custom_image = (uint8_t *)malloc(IMAGE_SIZE)) == NULL) {
       printf("Failed to apply for black memory...\r\n");
@@ -68,30 +72,32 @@ void ds_ui_weather_show(uint8_t type){
 
     Paint_DrawString_piture(0,0,gImage_back,icon_back_len,36, WHITE, BLACK);
 
-    Paint_DrawString_CN(30, 80,g_weather_page.city, WHITE, BLACK);
+    Paint_DrawString_CN(horizontal, vertical,g_weather_page.city, WHITE, BLACK);
+    vertical = 40 +offset_v;
+    horizontal = 90 + offset_h;
     switch (g_weather_page.code)
     {
     case 0:
     case 1:
     case 2:
     case 3:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[0],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[0],288,48, WHITE, BLACK);
         break;
     case 4:
     case 5:
     case 6:
     case 7:
     case 8:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[1],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[1],288,48, WHITE, BLACK);
         break;
     case 9:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[2],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[2],288,48, WHITE, BLACK);
         break;
     case 10:
     case 11:
     case 12:
     case 13:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[2],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[2],288,48, WHITE, BLACK);
         break;
     case 14:
     case 15:
@@ -99,7 +105,7 @@ void ds_ui_weather_show(uint8_t type){
     case 17:
     case 18:
     case 19:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[3],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[3],288,48, WHITE, BLACK);
         break;
     case 20:
     case 21:
@@ -107,23 +113,28 @@ void ds_ui_weather_show(uint8_t type){
     case 23:
     case 24:
     case 25:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[4],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[4],288,48, WHITE, BLACK);
         break;
     default:
-        Paint_DrawString_piture(90,40,gImage_num_weather_icon[5],288,48, WHITE, BLACK);
+        Paint_DrawString_piture(horizontal,vertical,gImage_num_weather_icon[5],288,48, WHITE, BLACK);
         break;
     }
-
-    Paint_DrawString_CN(50, 120,g_weather_page.temperature_array, WHITE, BLACK);
-    Paint_DrawString_piture(80,85,gImage_template,icon_template_len,32, WHITE, BLACK);
+    vertical = 120 +offset_v;
+    horizontal = 50 + offset_h;
+    Paint_DrawString_CN(horizontal, vertical,g_weather_page.temperature_array, WHITE, BLACK);
+    vertical = 85 +offset_v;
+    horizontal = 80 + offset_h;
+    Paint_DrawString_piture(horizontal,vertical,gImage_template,icon_template_len,32, WHITE, BLACK);
+    vertical = 145 +offset_v;
+    horizontal = 35 + offset_h;
     if(strlen(g_weather_page.weather_text)/3 == 4){
-        Paint_DrawString_CN(35, 145,g_weather_page.weather_text, WHITE, BLACK);
+        Paint_DrawString_CN(horizontal, vertical,g_weather_page.weather_text, WHITE, BLACK);
     }else{
-        Paint_DrawString_CN(55, 145,g_weather_page.weather_text, WHITE, BLACK);
+        Paint_DrawString_CN(horizontal, vertical,g_weather_page.weather_text, WHITE, BLACK);
     }
     
 
-    ds_screen_partial_display(0,151,0,151 ,ds_ui_back_main_page,ds_paint_image_new); 
+    ds_screen_partial_display(0,199,0,199 ,ds_ui_back_main_page,ds_paint_image_new); 
 
     // ds_screen_full_display(ds_paint_image);
 

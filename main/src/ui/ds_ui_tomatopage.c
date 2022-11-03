@@ -64,12 +64,19 @@ typedef struct
     uint8_t partial_update_time;
 }TOMATO_PAGE_T;
 
+//200*200 像素屏幕适配，偏移值
+ int offset_v = 29; 
+ int offset_h = 24; 
+
 TOMATO_PAGE_T g_tomato_page;
 
 static void ds_ui_tomatopage_num_set(const uint8_t *data){
 	unsigned int i;
 	for(i=0;i<192;i++){	
-		spi_send_data(data[i]);
+		spi_send_data(~data[i]);
+	}
+    for(i=0;i<32;i++){	
+		spi_send_data(0);
 	}
 }
 
@@ -77,8 +84,11 @@ static void ds_ui_tomatopage_num_clear(const uint8_t *data)
 {
 	unsigned int i;
     for(i=0;i<192;i++){
-		spi_send_data(data[i]);  
+		spi_send_data(~data[i]);  
 	}  
+    for(i=0;i<32;i++){	
+		spi_send_data(0);
+	}
 }
 
 static void ds_ui_tomatopage_update(){
@@ -87,8 +97,8 @@ static void ds_ui_tomatopage_update(){
     g_tomato_page.is_updateing = true;
     int num_size = 32;
     int num_size_y = 48;
-	int vertical = 35; //垂直位置
-    int horizontal = 8;  //水平位置
+	int vertical = 35+offset_v; //垂直位置
+    int horizontal = 8 + offset_h;  //水平位置
     int last_index,now_index;
     //小时 十位
     last_index = g_tomato_page.hour_last / 10;
@@ -111,6 +121,9 @@ static void ds_ui_tomatopage_update(){
     if(last_index != now_index)
         ds_screen_partial_display_bydata(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
         
+    printf("update h = %d %d\n",horizontal+num_size*2+8,vertical);
+    printf("update h = %d %d\n",horizontal+num_size*3+8,vertical);
+
     g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
     g_tomato_page.is_updateing = false;
@@ -120,8 +133,8 @@ void ds_ui_tomatopage_show_init(){
     g_tomato_page.is_updateing = true;
     int num_size = 32;
     int num_size_y = 48;
-	int vertical = 35; //垂直位置
-    int horizontal = 8;  //水平位置
+	int vertical = 35 + offset_v; //垂直位置
+    int horizontal = 8 + offset_h;  //水平位置
     int now_index;
     g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
@@ -142,11 +155,13 @@ void ds_ui_tomatopage_show_init(){
     now_index = g_tomato_page.minute % 10;
     ds_screen_partial_data_add(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
 
+    printf("init h = %d %d\n",horizontal+num_size*2+8,vertical);
+    printf("init h = %d %d\n",horizontal+num_size*3+8,vertical);
     //图标
     num_size = 56;
     num_size_y = 56;
-    vertical = 90;
-    horizontal = 45;
+    vertical = 90 + offset_v;
+    horizontal = 45 + offset_h;
     if(g_tomato_page.work_status == TOMATO_COUNT_STOP){
         //TODO 停止文字图-点击开始
         ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size_y,gImage_click_start);
@@ -206,6 +221,7 @@ void ds_ui_tomatopage_updatetime(){
             //每轮刷新
             if(ds_ui_get_now_show_page() == PAGE_TYPE_TOMATO){
                 g_tomato_page.partial_update_time = 0;
+                send_beep_event(BEEP_LONG);
                 ds_ui_tomatopage_show_init();
                 return;
             }

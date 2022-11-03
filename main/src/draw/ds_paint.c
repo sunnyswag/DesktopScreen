@@ -511,31 +511,31 @@ void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pb
 void ds_paint_image(void){
 	unsigned int i;
 	spi_send_cmd(0x10);
-	for(i=0;i<2888;i++){
-		spi_send_data(0x00);  
+	for(i=0;i<5000;i++){
+		spi_send_data(0xff);  
 	}
 	spi_send_cmd(0x13);
-	for(i=0;i<2888;i++){
+	for(i=0;i<5000;i++){
 		spi_send_data(Paint._Image[i]);  
 	}  	 		
 }
 
-unsigned char gImage_last_page[2888];
+unsigned char gImage_last_page[5000];
 
 void ds_paint_last_page(void){
 	unsigned int i;
-	for(i=0;i<2888;i++){
-		spi_send_data(~gImage_last_page[i]);  
+	for(i=0;i<5000;i++){
+		spi_send_data(gImage_last_page[i]);  
 	}  	 		
 }
 
 void ds_paint_image_new(){
     unsigned int i;
-    for(i=0;i<2888;i++){
-		spi_send_data(~Paint._Image[i]);  
+    for(i=0;i<5000;i++){
+		spi_send_data(Paint._Image[i]);  
 	}  	 	
 }
 
 void ds_paint_image_copy(){
-    memcpy(gImage_last_page,Paint._Image,2888);
+    memcpy(gImage_last_page,Paint._Image,5000);
 }

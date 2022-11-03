@@ -80,9 +80,9 @@ void ds_ui_fans_show_init(uint8_t type){
     }
 
     if(type == 0)
-        ds_screen_partial_display(0,151,0,151 ,ds_ui_back_main_page,ds_paint_image_new); 
+        ds_screen_partial_display(0,199,0,199 ,ds_ui_back_main_page,ds_paint_image_new); 
     else
-        ds_screen_partial_display(0,151,0,151 ,ds_paint_last_page,ds_paint_image_new); 
+        ds_screen_partial_display(0,199,0,199 ,ds_paint_last_page,ds_paint_image_new); 
 
     // ds_screen_full_display(ds_paint_image);
     ds_paint_image_copy();

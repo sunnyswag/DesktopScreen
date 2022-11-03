@@ -214,6 +214,9 @@ void app_main(void)
     //PWM蜂鸣器初始化
     ds_pwm_init();
 
+    // ds_screen_init();
+    // ds_screen_partial_test();
+
     //默认Wifi账号密码设置
     // char *ssid="leo";
     // char *psw="1234567890";
@@ -227,7 +230,7 @@ void app_main(void)
     }
 
     //启动AP&STA模式
-    // vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
     ds_wifi_send_event(AP_STA_START);
     xTaskCreate(background_task, "background_task", 4096, NULL, 10, NULL); 
     

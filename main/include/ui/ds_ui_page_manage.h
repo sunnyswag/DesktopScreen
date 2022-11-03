@@ -5,8 +5,8 @@
 
 #include "ds_system_data.h"
 
-#define EPD_2IN9BC_WIDTH       152
-#define EPD_2IN9BC_HEIGHT      152
+#define EPD_2IN9BC_WIDTH       200
+#define EPD_2IN9BC_HEIGHT      200
 #define IMAGE_SIZE (((EPD_2IN9BC_WIDTH % 8 == 0) ? (EPD_2IN9BC_WIDTH / 8 ) : (EPD_2IN9BC_WIDTH / 8 + 1)) * EPD_2IN9BC_HEIGHT)
 
 

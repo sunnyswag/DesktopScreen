@@ -39,6 +39,10 @@ typedef struct
     WORD_T array[10];
 }WORD_ARRAY_T;
 
+//200*200 像素屏幕适配，偏移值
+static int offset_v = 20; 
+static int offset_h = 20; 
+
 WORD_ARRAY_T word_array;
 
 
@@ -67,15 +71,15 @@ void ds_ui_wordpage_show(uint8_t type){
         //此处偏移
         start_en -= 15;
     }
-    Paint_DrawString_CN(start_en, 80, word_array.array[g_word_page.num].word[0], WHITE, BLACK);
-    Paint_DrawString_CN(start_cn, 110, word_array.array[g_word_page.num].word[1], WHITE, BLACK);
+    Paint_DrawString_CN(start_en+offset_h, 80+offset_v, word_array.array[g_word_page.num].word[0], WHITE, BLACK);
+    Paint_DrawString_CN(start_cn+offset_h, 110+offset_v, word_array.array[g_word_page.num].word[1], WHITE, BLACK);
 
     // ds_screen_full_display(ds_paint_image);
 
     if(type == 0)
-        ds_screen_partial_display(0,151,0,151 ,ds_ui_back_main_page,ds_paint_image_new); 
+        ds_screen_partial_display(0,199,0,199 ,ds_ui_back_main_page,ds_paint_image_new); 
     else
-        ds_screen_partial_display(0,151,0,151 ,ds_paint_last_page,ds_paint_image_new); 
+        ds_screen_partial_display(0,199,0,199 ,ds_paint_last_page,ds_paint_image_new); 
 
     ds_paint_image_copy();
     free(m_custom_image);

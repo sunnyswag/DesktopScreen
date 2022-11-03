@@ -28,12 +28,16 @@ typedef struct
     uint8_t partial_update_time;
 }TIME_PAGE_T;
 
+//200*200 像素屏幕适配，偏移值
+static int offset_v = 29; 
+static int offset_h = 24; 
+
 TIME_PAGE_T g_time_page;
 
 static void ds_ui_timepage_num_set(const uint8_t *data){
 	unsigned int i;
 	for(i=0;i<192;i++){	
-		    spi_send_data(data[i]);
+		    spi_send_data(~data[i]);
 	}
 }
 
@@ -42,11 +46,11 @@ static void ds_ui_timepage_num_clear(const uint8_t *data)
 	unsigned int i;
     if(g_time_page.init_status == 0){
         for(i=0;i<192;i++){
-            spi_send_data(0x00);  
+            spi_send_data(0xff);  
         }  
     }else{
         for(i=0;i<192;i++)	     {
-		    spi_send_data(data[i]);  
+		    spi_send_data(~data[i]);  
 	    }  
     }
 }
@@ -57,8 +61,8 @@ void ds_ui_timepage_show_time_init(){
     g_time_page.updateing = 1;
     int num_size = 32;
     int num_size_y = 48;
-	int vertical = 35; //垂直位置
-    int horizontal = 8;  //水平位置
+	int vertical = 35 + offset_v; //垂直位置
+    int horizontal = 8 + offset_h;  //水平位置
     int now_index;
 
     ds_screen_partial_data_init();
@@ -88,14 +92,15 @@ void ds_ui_timepage_show_time_init(){
     //温湿度图标
     //size 56*56
     num_size = 56;
-    vertical = 85;
-    ds_screen_partial_data_add(5,5+num_size,vertical,vertical+num_size,gImage_TH);
+    vertical = 85 + offset_v;
+    horizontal = 5  + offset_h;
+    ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size,gImage_TH);
 
     //温度
-    vertical = 95;
+    vertical = 95 + offset_v;
     num_size = 16;
     num_size_y = 24;
-    horizontal = 70;
+    horizontal = 70 + offset_h;
     //溫度 十位
     now_index = g_time_page.temperature / 10;
     ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size_y,gImage_num_size24[now_index]);
@@ -104,9 +109,9 @@ void ds_ui_timepage_show_time_init(){
     ds_screen_partial_data_add(horizontal+num_size,horizontal+2*num_size,vertical,vertical+num_size_y,gImage_num_size24[now_index]);
 
     //湿度
-    vertical = 125;
+    vertical = 125 + offset_v;
     num_size = 16;
-    horizontal = 70;
+    horizontal = 70 + offset_h;
     //溫度 十位
     now_index = g_time_page.humidity / 10;
     ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size_y,gImage_num_size24[now_index]);
@@ -117,12 +122,12 @@ void ds_ui_timepage_show_time_init(){
     //温度符号
     //size 36*36
     num_size = 32;
-    vertical = 85;
-    horizontal = 105;
+    vertical = 85 + offset_v;
+    horizontal = 105 + offset_h;
     ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size,gImage_template);
 
     //湿度符号
-    vertical = 115;
+    vertical = 115 + offset_v;
     ds_screen_partial_data_add(horizontal,horizontal+num_size,vertical,vertical+num_size,gImage_humidity);
 
     ds_screen_partial_data_copy();
@@ -140,8 +145,8 @@ void ds_ui_timepage_show_time(uint8_t type){
     g_time_page.init_status = type;
     int num_size = 32;
     int num_size_y = 48;
-	int vertical = 35; //垂直位置
-    int horizontal = 8;  //水平位置
+	int vertical = 35 + offset_v; //垂直位置
+    int horizontal = 8 + offset_h;  //水平位置
     int last_index,now_index;
 
     //小时 十位
