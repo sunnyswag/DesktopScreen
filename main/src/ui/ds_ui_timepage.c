@@ -37,7 +37,7 @@ TIME_PAGE_T g_time_page;
 static void ds_ui_timepage_num_set(const uint8_t *data){
 	unsigned int i;
 	for(i=0;i<192;i++){	
-		    spi_send_data(~data[i]);
+		spi_send_data(~data[i]);
 	}
 }
 

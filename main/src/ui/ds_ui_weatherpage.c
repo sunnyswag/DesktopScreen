@@ -133,8 +133,8 @@ void ds_ui_weather_show(uint8_t type){
         Paint_DrawString_CN(horizontal, vertical,g_weather_page.weather_text, WHITE, BLACK);
     }
     
-
-    ds_screen_partial_display(0,199,0,199 ,ds_ui_back_main_page,ds_paint_image_new); 
+    ds_screen_partial_display(0,0,ds_paint_image_new,199,199); 
+    // ds_screen_partial_display(0,199,0,199 ,ds_ui_back_main_page,ds_paint_image_new); 
 
     // ds_screen_full_display(ds_paint_image);
 

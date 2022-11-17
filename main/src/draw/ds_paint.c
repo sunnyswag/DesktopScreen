@@ -510,11 +510,7 @@ void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pb
 //图片全刷
 void ds_paint_image(void){
 	unsigned int i;
-	spi_send_cmd(0x10);
-	for(i=0;i<5000;i++){
-		spi_send_data(0xff);  
-	}
-	spi_send_cmd(0x13);
+	spi_send_cmd(0x24);
 	for(i=0;i<5000;i++){
 		spi_send_data(Paint._Image[i]);  
 	}  	 		
