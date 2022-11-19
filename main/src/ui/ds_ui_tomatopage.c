@@ -75,9 +75,6 @@ static void ds_ui_tomatopage_num_set(const uint8_t *data){
 	for(i=0;i<192;i++){	
 		spi_send_data(~data[i]);
 	}
-    // for(i=0;i<32;i++){	
-	// 	spi_send_data(0);
-	// }
 }
 
 static void ds_ui_tomatopage_num_clear(const uint8_t *data)
@@ -101,33 +98,19 @@ static void ds_ui_tomatopage_update(){
     int horizontal = 8 + offset_h;  //水平位置
     int last_index,now_index;
     //小时 十位
-    last_index = g_tomato_page.hour_last / 10;
     now_index = g_tomato_page.hour / 10;
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata_1(horizontal+0,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size,num_size_y);
-        // ds_screen_partial_display_bydata(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
+    ds_screen_partial_display_bydata(horizontal+0,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     // //小时 个位
-    last_index = g_tomato_page.hour_last % 10;
     now_index = g_tomato_page.hour % 10;
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata_1(horizontal+num_size,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size,num_size_y);
-        // ds_screen_partial_display_bydata(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
+    ds_screen_partial_display_bydata(horizontal+num_size,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     //分钟 十位 10 *8 = 80  14*8 112
-    last_index = g_tomato_page.minute_last / 10;
     now_index = g_tomato_page.minute / 10;
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata_1(horizontal+num_size*2+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-        // ds_screen_partial_display_bydata(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
+    ds_screen_partial_display_bydata(horizontal+num_size*2+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     // //分钟 个位
-    last_index = g_tomato_page.minute_last % 10;
     now_index = g_tomato_page.minute % 10;
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata_1(horizontal+num_size*3+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-        // ds_screen_partial_display_bydata(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,ds_ui_tomatopage_num_clear,gImage_num_size48[last_index],ds_ui_tomatopage_num_set,gImage_num_size48[now_index]);
-        
-    printf("update h = %d %d\n",horizontal+num_size*2+8,vertical);
-    printf("update h = %d %d\n",horizontal+num_size*3+8,vertical);
-
+    ds_screen_partial_display_bydata(horizontal+num_size*3+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
+    refresh_part();
+	deep_sleep();
     g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
     g_tomato_page.is_updateing = false;
@@ -159,8 +142,6 @@ void ds_ui_tomatopage_show_init(){
     now_index = g_tomato_page.minute % 10;
     ds_screen_partial_data_add(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
 
-    printf("init h = %d %d\n",horizontal+num_size*2+8,vertical);
-    printf("init h = %d %d\n",horizontal+num_size*3+8,vertical);
     //图标
     num_size = 56;
     num_size_y = 56;

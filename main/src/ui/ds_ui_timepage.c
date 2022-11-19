@@ -150,31 +150,19 @@ void ds_ui_timepage_show_time(uint8_t type){
     int last_index,now_index;
 
     //小时 十位
-    last_index = g_time_page.hour_last / 10;
     now_index = g_time_page.hour / 10;
-    printf("hour %d %d\n", g_time_page.hour_last, g_time_page.hour);
-    printf("minute %d %d\n", g_time_page.minute_last, g_time_page.minute);
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,ds_ui_timepage_num_clear,gImage_num_size48[last_index],ds_ui_timepage_num_set,gImage_num_size48[now_index]);
+    ds_screen_partial_display_bydata(horizontal+0,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     // //小时 个位
-    last_index = g_time_page.hour_last % 10;
     now_index = g_time_page.hour % 10;
-    if(last_index != now_index)
-        ds_screen_partial_display_bydata(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,ds_ui_timepage_num_clear,gImage_num_size48[last_index],ds_ui_timepage_num_set,gImage_num_size48[now_index]);
-
+    ds_screen_partial_display_bydata(horizontal+num_size,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     //分钟 十位 10 *8 = 80  14*8 112
-    last_index = g_time_page.minute_last / 10;
     now_index = g_time_page.minute / 10;
-    if(last_index != now_index)
-      ds_screen_partial_display_bydata(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,ds_ui_timepage_num_clear,gImage_num_size48[last_index],ds_ui_timepage_num_set,gImage_num_size48[now_index]);
-
+    ds_screen_partial_display_bydata(horizontal+num_size*2+8,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
     // //分钟 个位
-    last_index = g_time_page.minute_last % 10;
     now_index = g_time_page.minute % 10;
-    if(last_index != now_index)
-      ds_screen_partial_display_bydata(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,ds_ui_timepage_num_clear,gImage_num_size48[last_index],ds_ui_timepage_num_set,gImage_num_size48[now_index]);
-        
-
+    ds_screen_partial_display_bydata(horizontal+num_size*3+8,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
+    refresh_part();
+	deep_sleep();
     g_time_page.hour_last = g_time_page.hour;
     g_time_page.minute_last = g_time_page.minute;
     g_time_page.init_status = 1;

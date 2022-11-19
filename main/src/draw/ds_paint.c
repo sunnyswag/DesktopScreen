@@ -527,6 +527,7 @@ void ds_paint_last_page(void){
 
 void ds_paint_image_new(){
     unsigned int i;
+    spi_send_cmd(0x24); 
     for(i=0;i<5000;i++){
 		spi_send_data(Paint._Image[i]);  
 	}  	 	

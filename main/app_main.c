@@ -193,51 +193,51 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    // //http请求初始化
-    // ds_http_request_init();
-    // //ap&sta模式初始化
-    // ds_wifi_ap_sta_init();   
+    //http请求初始化
+    ds_http_request_init();
+    //ap&sta模式初始化
+    ds_wifi_ap_sta_init();   
 
-    // // //屏幕、TP外设初始化相关
-    // init_ft6336();
-    // init_screen_interface();
-    // //屏幕显示数据初始化
-    // ds_ui_timepage_init();
-    // ds_ui_page_manage_init();
-    // ds_ui_weather_init();
-    // ds_ui_wordpage_init();
-    // ds_ui_wordpage_init();
-    // ds_ui_tomatopage_init();
-    // ds_ui_fans_init();
-    // //定时器初始化
-    // ds_timer_init();
-    // //PWM蜂鸣器初始化
-    // ds_pwm_init();
+    // //屏幕、TP外设初始化相关
+    init_ft6336();
+    init_screen_interface();
+    //屏幕显示数据初始化
+    ds_ui_timepage_init();
+    ds_ui_page_manage_init();
+    ds_ui_weather_init();
+    ds_ui_wordpage_init();
+    ds_ui_wordpage_init();
+    ds_ui_tomatopage_init();
+    ds_ui_fans_init();
+    //定时器初始化
+    ds_timer_init();
+    //PWM蜂鸣器初始化
+    ds_pwm_init();
 
-    // //默认Wifi账号密码设置
-    // // char *ssid="leo";
-    // // char *psw="1234567890";
-    // // ds_nvs_save_wifi_info(ssid,psw);
-    // if(NVS_WIFI_INFO_HAS_SAVE == ds_nvs_read_wifi_info()){
-    //     //已经存储wifi联网信息
-    //     ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
-    // }else{
-    //     //未存储wifi联网信息
-    //     ds_ui_page_manage_send_action(PAGE_TYPE_SETTING);
-    // }
+    //默认Wifi账号密码设置
+    // char *ssid="leo";
+    // char *psw="1234567890";
+    // ds_nvs_save_wifi_info(ssid,psw);
+    if(NVS_WIFI_INFO_HAS_SAVE == ds_nvs_read_wifi_info()){
+        //已经存储wifi联网信息
+        ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
+    }else{
+        //未存储wifi联网信息
+        ds_ui_page_manage_send_action(PAGE_TYPE_SETTING);
+    }
 
-    // //启动AP&STA模式
-    // vTaskDelay(2000 / portTICK_PERIOD_MS);
-    // ds_wifi_send_event(AP_STA_START);
-    // xTaskCreate(background_task, "background_task", 4096, NULL, 10, NULL); 
+    //启动AP&STA模式
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    ds_wifi_send_event(AP_STA_START);
+    xTaskCreate(background_task, "background_task", 4096, NULL, 10, NULL); 
     
-    // //进入低功耗模式
-    // sleep_mode_init();
+    //进入低功耗模式
+    sleep_mode_init();
 
     // char pWriteBuffer[1048];
 
-    init_screen_interface();
-    test_SSD1681();
+    // init_screen_interface();
+    // test_SSD1681();
 
     for(;;){
         printf("app run \n");
