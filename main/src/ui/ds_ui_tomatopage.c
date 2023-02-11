@@ -177,6 +177,7 @@ void ds_ui_tomatopage_start_toggle(){
     }else if(g_tomato_page.work_status == TOMATO_COUNT_FINISH){
         //完成状态下点击，重新开始
         g_tomato_page.minute = g_tomato_page.work_time;
+        g_tomato_page.second = 59;
         g_tomato_page.timescount = g_tomato_page.times;
         g_tomato_page.work_status = TOMATO_COUNT_START;
     }
@@ -194,9 +195,11 @@ void ds_ui_tomatopage_updatetime(){
                 if(g_tomato_page.work_type == TOMATO_TYPE_WORK){
                     g_tomato_page.work_type = TOMATO_TYPE_REST;
                     g_tomato_page.minute = g_tomato_page.rest_time;
+                    g_tomato_page.second = 59;
                 }else{
                     g_tomato_page.work_type = TOMATO_TYPE_WORK;
                     g_tomato_page.minute = g_tomato_page.work_time;
+                    g_tomato_page.second = 59;
                 }
             }else{
                 send_beep_event(BEEP_LONG);
@@ -235,7 +238,7 @@ void ds_ui_tomatopage_time_set(uint8_t work_time,uint8_t rest_time,uint8_t times
     g_tomato_page.rest_time = rest_time;
     g_tomato_page.times = times;
     g_tomato_page.minute = work_time;
-    g_tomato_page.second = 30;
+    g_tomato_page.second = 59;
 }
 
 void ds_ui_tomatopage_init(){
@@ -243,6 +246,7 @@ void ds_ui_tomatopage_init(){
     ds_nvs_read_tomato_time(&g_tomato_page.work_time,&g_tomato_page.rest_time,&g_tomato_page.times);
     g_tomato_page.hour = 0;
     g_tomato_page.minute = g_tomato_page.work_time;
+    g_tomato_page.second = 59;
     g_tomato_page.work_status = TOMATO_COUNT_STOP;
     g_tomato_page.work_type = TOMATO_TYPE_WORK;
     g_tomato_page.timescount = g_tomato_page.times;

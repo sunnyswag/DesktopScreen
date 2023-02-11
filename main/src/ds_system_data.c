@@ -286,3 +286,14 @@ void update_system_time_second(){
         g_system_data.second ++;
     }
 }
+
+void update_system_time_minute(){
+    if(g_system_data.minute >= 59){
+        g_system_data.minute = 0;
+        if(g_system_data.hour >= 23){
+            g_system_data.hour = 0;
+        }else
+            g_system_data.hour ++;
+    }else
+        g_system_data.minute ++;
+}

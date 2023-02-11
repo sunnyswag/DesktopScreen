@@ -146,7 +146,7 @@ static void ui_timer_update_task(void *arg)
         }
         g_timer_event.timer_second_count ++;
         //1s计算一次 
-        if(g_timer_event.timer_second_count >= 10){
+        if(g_timer_event.timer_second_count >= 100){
             g_timer_event.timer_second_count = 0;
             ds_ui_tomatopage_updatetime();
         }

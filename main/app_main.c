@@ -58,11 +58,11 @@
 
 #define BUTTON_GPIO_NUM_DEFAULT  4
 #define TWDT_TIMEOUT_S          3
+#define SLEEP_TIME_RESET 600
 
 static void sleep_mode_init(){
-
+    set_tp_wackup_timeleft(SLEEP_TIME_RESET);
     while (true) {
-        set_tp_wackup_timeleft(600);
         
         //ap&sta关闭、且当前在主页、且超过5min未触摸时才进入低功耗
         do {
@@ -78,7 +78,7 @@ static void sleep_mode_init(){
         ds_touch_gpio_isr_remove();
         gpio_wakeup_enable(BUTTON_GPIO_NUM_DEFAULT,GPIO_INTR_LOW_LEVEL);
         /* Wake up in 60 seconds, or when button is pressed */
-        // esp_sleep_enable_timer_wakeup(60000000);
+        esp_sleep_enable_timer_wakeup(60000000);
         esp_sleep_enable_gpio_wakeup();
 
         printf("Entering light sleep\n");
@@ -92,31 +92,36 @@ static void sleep_mode_init(){
 
         /* Get timestamp after waking up from sleep */
         int64_t t_after_us = esp_timer_get_time();
-
         /* Determine wake up reason */
         const char* wakeup_reason;
-        uint32_t wackup_timeleft = 600;
+        uint32_t wackup_timeleft = 60;
         switch (esp_sleep_get_wakeup_cause()) {
             case ESP_SLEEP_WAKEUP_TIMER:
                 wakeup_reason = "timer";
-                wackup_timeleft = 5;
+                wackup_timeleft = 1;
+                update_system_time_minute();
                 break;
             case ESP_SLEEP_WAKEUP_GPIO:
                 wakeup_reason = "pin";
+                gpio_wakeup_disable(BUTTON_GPIO_NUM_DEFAULT);
+                esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
+                ds_touch_gpio_init();
+                ds_touch_gpio_isr_add();
+                reset_tp_action_manage();
                 break;
             default:
                 wakeup_reason = "other";
+                gpio_wakeup_disable(BUTTON_GPIO_NUM_DEFAULT);
+                esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
+                ds_touch_gpio_init();
+                ds_touch_gpio_isr_add();
+                reset_tp_action_manage();
                 break;
         }
-        printf("Returned from light sleep, reason: %s, t=%lld ms, slept for %lld ms\n",
-                wakeup_reason, t_after_us / 1000, (t_after_us - t_before_us) / 1000);
+        printf("Returned from light sleep, reason: %s, t=%lld ms, slept for %lld ms  wackup_timeleft=%d\n",
+                wakeup_reason, t_after_us / 1000, (t_after_us - t_before_us) / 1000,wackup_timeleft);
 
         set_tp_wackup_timeleft(wackup_timeleft);
-        gpio_wakeup_disable(BUTTON_GPIO_NUM_DEFAULT);
-        esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
-        ds_touch_gpio_init();
-        ds_touch_gpio_isr_add();
-        reset_tp_action_manage();
     }
 }
 
@@ -146,7 +151,7 @@ static void background_task(void* arg)
         //关闭wifi AP&STA 计时
         if(get_is_ap_sta_open() == true && apsta_close_count == 0){
             //重置10min计时
-            apsta_close_count = (600 - 10);
+            apsta_close_count = (SLEEP_TIME_RESET - 10);
         }
         if(apsta_close_count > 0){
             apsta_close_count --;

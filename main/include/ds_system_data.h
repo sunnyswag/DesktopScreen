@@ -144,6 +144,7 @@ uint32_t get_tp_wackup_timeleft();
 ////////////////TIME/////////////////////
 void update_system_time(uint8_t hour,uint8_t minute,uint8_t second);
 void update_system_time_second();
+void update_system_time_minute();
 
 #endif
 
