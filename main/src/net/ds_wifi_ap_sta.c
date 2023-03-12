@@ -143,7 +143,6 @@ static void wifi_net_task(void* arg)
     //http服务器初始化
     // dns_server_start();
     // web_server_start();
-    ds_http_server_init();
     for(;;) {
         WIFI_SET_EVENT_E evt;
         xQueueReceive(wifi_event_queue, &evt, portMAX_DELAY);

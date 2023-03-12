@@ -47,6 +47,7 @@
 #include "ds_wifi_ap_sta.h"
 #include "ds_pwm.h"
 #include "ds_gpio.h"
+#include "ds_http_server.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32
 #define CHIP_NAME "ESP32"
@@ -189,6 +190,8 @@ void app_main(void)
     printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
+    printf("sw revision V4.0.2 \n");
+
     //看门狗初始化
     // esp_task_wdt_init(TWDT_TIMEOUT_S, false);
     // esp_task_wdt_add(NULL);
@@ -200,6 +203,7 @@ void app_main(void)
 
     //http请求初始化
     ds_http_request_init();
+    ds_http_server_init();
     //ap&sta模式初始化
     ds_wifi_ap_sta_init();   
 
@@ -221,7 +225,7 @@ void app_main(void)
 
     //默认Wifi账号密码设置
     // char *ssid="leo";
-    // char *psw="1234567890";
+    // char *psw="123456789";
     // ds_nvs_save_wifi_info(ssid,psw);
     if(NVS_WIFI_INFO_HAS_SAVE == ds_nvs_read_wifi_info()){
         //已经存储wifi联网信息
@@ -240,7 +244,6 @@ void app_main(void)
     sleep_mode_init();
 
     // char pWriteBuffer[1048];
-
     // init_screen_interface();
     // test_SSD1681();
 

@@ -45,13 +45,28 @@ esp_err_t init_spiffs(void)
     }
 
     size_t total = 0, used = 0;
-    ret = esp_spiffs_info(NULL, &total, &used);
+    ret = esp_spiffs_info(conf.partition_label, &total, &used);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+        esp_spiffs_format(conf.partition_label);
         return ESP_FAIL;
     }
 
     ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+
+        // Check consistency of reported partiton size info.
+    if (used > total) {
+        ESP_LOGW(TAG, "Number of used bytes cannot be larger than total. Performing SPIFFS_check().");
+        ret = esp_spiffs_check(conf.partition_label);
+        // Could be also used to mend broken files, to clean unreferenced pages, etc.
+        // More info at https://github.com/pellepl/spiffs/wiki/FAQ#powerlosses-contd-when-should-i-run-spiffs_check
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "SPIFFS_check() failed (%s)", esp_err_to_name(ret));
+            return ESP_FAIL;
+        } else {
+            ESP_LOGI(TAG, "SPIFFS_check() successful");
+        }
+    }
     return ESP_OK;
 }
 
