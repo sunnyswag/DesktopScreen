@@ -361,19 +361,23 @@ static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                if (output_buffer == NULL) {
-                    output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
-                    output_len = 0;
-                    if (output_buffer == NULL) {
-                        ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
-                        return ESP_FAIL;
-                    }
-                }
-                memcpy(output_buffer + output_len, evt->data, evt->data_len);
-                printf("%.*s\n", output_len, output_buffer);
-                cjson_fans_info((char*)output_buffer);
-                output_len += evt->data_len;
+                printf("%.*s\n", evt->data_len, (char*)evt->data);
+                // cjson_fans_info((char*)evt->data);
             }
+            // if (!esp_http_client_is_chunked_response(evt->client)) {
+            //     if (output_buffer == NULL) {
+            //         output_buffer = (char *) malloc(esp_http_client_get_content_length(evt->client));
+            //         output_len = 0;
+            //         if (output_buffer == NULL) {
+            //             ESP_LOGE(TAG, "Failed to allocate memory for output buffer");
+            //             return ESP_FAIL;
+            //         }
+            //     }
+            //     memcpy(output_buffer + output_len, evt->data, evt->data_len);
+            //     printf("%.*s\n", output_len, output_buffer);
+            //     cjson_fans_info((char*)output_buffer);
+            //     output_len += evt->data_len;
+            // }
             break;
         case HTTP_EVENT_ERROR:
             ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
@@ -399,17 +403,17 @@ static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
-            int mbedtls_err = 0;
-            esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
-            if (err != 0) {
-                ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
-                ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
-            }
-            if (output_buffer != NULL) {
-                free(output_buffer);
-                output_buffer = NULL;
-            }
-            output_len = 0;
+            // int mbedtls_err = 0;
+            // esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
+            // if (err != 0) {
+            //     ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
+            //     ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
+            // }
+            // if (output_buffer != NULL) {
+            //     free(output_buffer);
+            //     output_buffer = NULL;
+            // }
+            // output_len = 0;
             break;
     }
     return ESP_OK;
@@ -447,6 +451,10 @@ static esp_err_t _http_city_event_handle(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+/**
+ * @brief 该接口废弃，建议更改为sntp接口使用，可参考ds_sntp.c文件
+ * 
+ */
 void http_time_get(){
     //http client配置
     esp_http_client_config_t config = {
@@ -505,6 +513,10 @@ void http_weather_get(){
 	esp_http_client_cleanup(weather_client);//断开并释放资源
 }
 
+/**
+ * @brief 该接口废弃，B站请求需使用https,需要用可以参考ds_https_request.c接口使用
+ * 
+ */
 void http_fans_get(){
     char url[100];
     if(fans_type == 0){
@@ -596,10 +608,7 @@ void ds_http_request_type(HTTP_REQUEST_TYPE_E type){
 }
 
 void ds_http_request_all(){
-    ds_http_request_type(HTTP_GET_FANS);
     ds_http_request_type(HTTP_GET_WEATHER);
-    ds_http_request_type(HTTP_GET_TIME);
-    ds_http_request_type(HTTP_GET_FANS);
 }
 
 static void http_request_task(void *pvParameters)

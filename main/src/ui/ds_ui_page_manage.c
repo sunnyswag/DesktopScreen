@@ -93,10 +93,12 @@ static void ui_page_evt_task(void *arg)
 			}else if(evt.key == TP_ACTION_LONG){
 				g_page_manage.now_show_page = PAGE_TYPE_SETTING;
 				ds_screen_setting();
-			}else if(evt.key == TP_ACTION_MOVE_LEFT){
-				g_page_manage.now_show_page = PAGE_TYPE_FANS;
-				ds_ui_fans_show_init(0);
-			}else if(evt.key == TP_ACTION_MOVE_DOWN){
+			}
+			// else if(evt.key == TP_ACTION_MOVE_LEFT){
+			// 	g_page_manage.now_show_page = PAGE_TYPE_FANS;
+			// 	ds_ui_fans_show_init(0);
+			// }
+			else if(evt.key == TP_ACTION_MOVE_DOWN){
 				set_update_httpdata_request(true);
 			}
 		}else if(g_page_manage.now_show_page != PAGE_TYPE_MEMU){

@@ -48,6 +48,7 @@
 #include "ds_pwm.h"
 #include "ds_gpio.h"
 #include "ds_http_server.h"
+#include "ds_sntp.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32
 #define CHIP_NAME "ESP32"
@@ -135,6 +136,7 @@ static void background_task(void* arg)
         //首次更新
         if(has_first_time_httpdata_request() == true && get_wifi_sta_status() == WIFI_STA_MODE_CONNECT_SUCCESS){
             ds_http_request_all();
+            initialize_sntp();
             set_has_first_time_httpdata_request();
         }
         //下拉请求更新
@@ -142,6 +144,7 @@ static void background_task(void* arg)
             if(get_is_ap_sta_open()){
                 if(get_wifi_sta_status() == WIFI_STA_MODE_CONNECT_SUCCESS){
                     ds_http_request_all();
+                    initialize_sntp();
                     set_update_httpdata_request(false);
                 }
             }else{
@@ -190,7 +193,7 @@ void app_main(void)
     printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    printf("sw revision V4.0.2 \n");
+    printf("sw revision V4.0.3 \n");
 
     //看门狗初始化
     // esp_task_wdt_init(TWDT_TIMEOUT_S, false);
@@ -242,10 +245,6 @@ void app_main(void)
     
     //进入低功耗模式
     sleep_mode_init();
-
-    // char pWriteBuffer[1048];
-    // init_screen_interface();
-    // test_SSD1681();
 
     for(;;){
         printf("app run \n");

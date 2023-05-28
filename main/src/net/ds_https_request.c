@@ -81,7 +81,7 @@ static void https_get_task(void *pvParameters)
 {
     char buf[512];
     int ret, len;
-    int flags = 0;
+    int flags = 1;
     while(1) {
         esp_tls_cfg_t cfg = {
             .cacert_buf  = server_root_cert_pem_start,
