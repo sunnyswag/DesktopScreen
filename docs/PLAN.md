@@ -1,6 +1,6 @@
 # DesktopScreen 多平台移植路径（ESP-IDF / NuttX / Zephyr）
 
-> 依据：[survey-desktopscreen.md](survey-desktopscreen.md)（ZCode 摸底原项目）、[survey-nuttx.md](survey-nuttx.md)（Codex 摸底 NuttX），关键结论已抽查原文核实。Zephyr 的摸底进行中。
+> 依据：[survey-desktopscreen.md](survey-desktopscreen.md)（ZCode 摸底原项目）、[survey-nuttx.md](survey-nuttx.md)（Codex 摸底 NuttX）、[survey-zephyr.md](survey-zephyr.md)（Codex 摸底 Zephyr v4.5.0），关键结论已抽查原文核实。
 > 制定：2026-10-31；同日修订：从"单独迁移到 NuttX"改为"本仓库通过平台抽象层同时适配多个系统"
 
 ## 修订：仓库与依赖管理（优先于下文中与之冲突的内容）
@@ -20,7 +20,7 @@
   └── vendor/          # repo / west 拉下来的依赖，.gitignore 忽略
   ```
 - **依赖管理**：NuttX 和 nuttx-apps 用 **repo** 管理（manifest 放在本仓库，拉到 `vendor/`）；Zephyr 和它的模块用 **west** 管理（`west.yml` 放在本仓库）；ESP-IDF 不进 vendor，继续用 `~/esp/esp-idf` v5.4.1，在文档里写明版本。repo 和 west 具体怎么在本仓库里落地（manifest 位置、工作区根目录），到对应阶段开工时先验证再定。
-- **顺序**：A（学原项目）→ **P（新增：抽出 core + pal，先在 ESP-IDF 上跑通，对照原版行为）** → NuttX（B、C、E、F）→ Zephyr。下文的阶段 D 并入 P，NuttX 端只需要写 port。NuttX 和 Zephyr 的先后，等 Zephyr 摸底结果出来再定。
+- **顺序**：A（学原项目）→ **P（新增：抽出 core + pal，先在 ESP-IDF 上跑通，对照原版行为）** → NuttX（B、C、E、F）→ Zephyr。下文的阶段 D 并入 P，NuttX 端只需要写 port。NuttX 在前、Zephyr 在后：NuttX 是原定目标（开发记录里的视频选题），也和你熟悉的 Vela/repo 体系一致；Zephyr 放在后面，正好检验 pal 抽得干不干净。Zephyr 的阶段见第 5 节。
 
 ## 0. 先说结论
 
@@ -180,3 +180,44 @@
 | 全程 | 遇到疑难 bug 时给第二意见；审查大 diff | Codex |
 
 **省 Claude 额度的做法**：每个阶段开一个新会话，开头说"按 `~/esp/DesktopScreen/docs/PLAN.md` 做阶段 X"。我只读这份计划和相关的摸底章节，然后写规格、派发、验收，不在旧会话里堆上下文。含写入的派发会先给你看规格，你确认后才开始。
+
+## 5. Zephyr 部分（v4.5.0，依据 survey-zephyr.md）
+
+### 和 NuttX 比，Zephyr 现成的更多
+
+| 项目 | Zephyr | NuttX |
+|---|---|---|
+| 墨水屏局刷 | **现成**：`ssd16xx` 驱动带 full/partial 两套 profile（参考 shield `waveshare_epaper_gdeh0154a07`） | 要自己给 ssd1680 驱动加 |
+| FT6336 | `focaltech,ft5336` 驱动，树内已有 FT6336 实例（M5Stack Core2 等） | ft5x06，兼容性未确认 |
+| 键值存储 | Settings + NVS/ZMS，原生支持 | 用 config.json 自己写 |
+| 字库分区 | 在 devicetree 里定义分区，用 `flash_area_read` 读 | 板级注册 MTD |
+| 配网 | APSTA 示例 + DHCPv4 服务器 + HTTP 服务器（支持动态 POST，标注 EXPERIMENTAL） | 自己写 HTTP 服务器 |
+| 低功耗 | 有 light sleep 示例（RTC 定时唤醒确认可用；GPIO4 唤醒有代码，未验证） | 最难，放在阶段 G |
+| 缺的 | 没有 cJSON；没有 SPIFFS | — |
+
+代价是学习曲线更陡：要学 devicetree、Kconfig、west、CMake 这一整套。
+
+### 对 pal 设计的约束（阶段 P 定接口时必须满足）
+
+- **显示**：core 用统一的帧缓冲（沿用原项目格式：横向 1bpp、MSB first、每行 25 字节），由各 port 自己转换。Zephyr 的 ssd16xx 只接受 `MONO01`（0=黑）且是 **VTILED**（每字节纵向 8 个像素），y 方向要 8 像素对齐。刷新接口要带"全刷/局刷"参数：Zephyr 端全刷用 `blanking_on` → `display_write` → `blanking_off`，局刷直接 `display_write`。"局刷 5 次后全刷一次"的策略放在 core。
+- **触摸**：pal 只上报按下、抬起和坐标，手势识别放在 core。Zephyr 的 FT5336 驱动只在单边沿触发中断，经 input 回调上报，不能照搬原项目的双沿中断逻辑。
+- **JSON**：天气解析属于业务逻辑，放 core；cJSON 作为第三方源码放进 `core/third_party/`，三个平台共用同一份，不依赖各平台自带的版本。
+- **时间**：core 自己处理 +8 时区。Zephyr 默认的 minimal libc 不支持 TZ，NuttX 也说好不启用 zoneinfo。
+- **线程与队列**：core 不直接调用任何 OS API，只提供"处理事件 / 定时 tick"两个入口；线程、队列、定时器都由各 port 实现。
+
+### 环境上要注意
+
+- **工具链**：用 Zephyr SDK 1.0.1（`xtensa-espressif_esp32_zephyr-elf`），不复用 IDF 的 GCC（官方不支持）。
+- **esptool 版本冲突**：Zephyr 要求 `esptool>=5.0.2`，NuttX 12.10 要的是 `esptool.py`（4.x，5.0 起改名了）。**NuttX 和 Zephyr 各用一个 venv**。
+- **west 工作区放哪**：按"修订"一节，依赖拉到本仓库的 `vendor/` 下。west 的工作区根目录是 manifest 所在目录的上一级，`west.yml` 放在 `ports/zephyr/` 时根目录会落在 `ports/`。阶段 Z0 先实测：`west.yml` 放在哪、用 `path-prefix: vendor` 能不能让依赖落到 `vendor/`。验证完再定。
+- 现在 `~/Git/zephyrproject/zephyr` 是浅克隆，只用来摸底。正式环境以 Z0 的方案为准，到时候可以删掉。
+
+### Zephyr 阶段
+
+| 阶段 | 内容 | 验收 |
+|---|---|---|
+| Z0 | west 工作区（按上面的方案）、Zephyr SDK、`west blobs fetch hal_espressif`；先跑 `native_sim` 的 hello_world，再上板跑 `esp32_devkitc/esp32/procpu` 的 hello_world | 模拟器和板子都能打印 |
+| Z1 | 在 `native_sim` 上跑 core（SDL 显示 + SDL 触摸），实现 Zephyr 的显示和触摸 port | PC 上所有页面能显示，手势能切页 |
+| Z2 | 板级 overlay：SPI2/I2C1/GPIO 引脚、ssd1681（带 full/partial 节点）、ft5336、LEDC 蜂鸣器、Flash 分区（含字库区）；Settings + NVS | 上板 UI 正常，时钟页局刷不闪，配置重启后还在 |
+| Z3 | 网络：参考 apsta_mode 示例做配网，HTTP 服务器提供 4 个 POST 接口，HTTP 客户端拉天气，SNTP 校时 | 和 NuttX 阶段 E 的验收一样 |
+| Z4（可选） | light sleep：RTC 定时唤醒 + GPIO4 唤醒（要实测）；处理 FT5336 自身休眠和 WiFi PM 阻止睡眠的问题 | 空闲时进入浅睡，触摸能唤醒 |
