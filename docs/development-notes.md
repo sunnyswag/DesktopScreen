@@ -94,4 +94,4 @@ CONFIG_ESP_WIFI_PASSWORD="123456789"
 - 学习 NuttX 上半部分（对接 VFS）和下半部分（操作硬件）的驱动模型。
 - 使用 NuttX 重新实现同样的功能，并记录迁移过程。
 
-迁移仓库：[desktopscreen-nuttx](https://github.com/sunnyswag/desktopscreen-nuttx)。
+迁移在本仓库内进行：通过平台抽象层同时适配 ESP-IDF、NuttX 和 Zephyr，计划见 [PLAN.md](PLAN.md)。

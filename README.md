@@ -2,7 +2,7 @@
 
 基于 ESP32 的桌面墨水屏：1.54 寸 SSD1681 墨水屏（200×200）+ FT6336 触摸，功能包括时钟、天气、番茄钟、单词卡，以及通过 AP 网页配网。
 
-> 原始代码来自**小智学长**的公开教程。本仓库在它的基础上做学习记录，后续会迁移到 NuttX，见 [desktopscreen-nuttx](https://github.com/sunnyswag/desktopscreen-nuttx)。
+> 原始代码来自**小智学长**的公开教程。本仓库在它的基础上做学习记录，后续会在本仓库内通过平台抽象层适配 NuttX 和 Zephyr，见 [docs/PLAN.md](docs/PLAN.md)。
 
 ## 开发记录与资料
 

@@ -2,3 +2,6 @@ build
 *:Zone.Identifier
 .cache/
 .vscode/
+.repo/
+.west/
+vendor/
