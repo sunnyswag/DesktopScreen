@@ -403,17 +403,6 @@ static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
-            // int mbedtls_err = 0;
-            // esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
-            // if (err != 0) {
-            //     ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
-            //     ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
-            // }
-            // if (output_buffer != NULL) {
-            //     free(output_buffer);
-            //     output_buffer = NULL;
-            // }
-            // output_len = 0;
             break;
     }
     return ESP_OK;
@@ -568,38 +557,6 @@ void http_city_get(){
 	esp_http_client_cleanup(city_client);//断开并释放资源
 }
 
-void ds_http_post(void)
-{
-    // //http client配置
-    // esp_http_client_config_t config = {
-    //     .method = HTTP_METHOD_GET, //get请求
-    //     .url = "http://quan.suning.com/getSysTime.do",
-    //     .event_handler = _http_event_handle,//注册时间回调
-    //     .skip_cert_common_name_check = true,
-    // };
-
-    // // // POST
-    // // const char *post_data = "field1=value1&field2=value2";
-    // // esp_http_client_set_url(client, "http://httpbin.org/post");
-    // // esp_http_client_set_method(client, HTTP_METHOD_POST);
-    // // esp_http_client_set_post_field(client, post_data, strlen(post_data));
-    // // int err = esp_http_client_perform(client);
-    // // if (err == ESP_OK) {
-    // //     ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
-    // //             esp_http_client_get_status_code(client),
-    // //             esp_http_client_get_content_length(client));
-
-    // //             int len =  esp_http_client_get_content_length(client);
-    // //             int read_len = 0;
-    // //             char buf[1024] = {0};
-    // //             read_len = esp_http_client_read(client, buf, len);
-    // //             printf("\nrecv data len:%d %d %s\n",read_len,len,buf);
-    // // } else {
-    // //     ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
-    // // }
-
-    // esp_http_client_cleanup(client);
-}
 
 void ds_http_request_type(HTTP_REQUEST_TYPE_E type){
     HTTP_REQUEST_TYPE_E evt;

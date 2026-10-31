@@ -111,7 +111,6 @@ bool has_wifi_info(void);
 //////////////////NET STATUS/////////////////////////////////////
 WIFI_STA_MODE_STATUS_E get_wifi_sta_status();
 void set_wifi_sta_status(WIFI_STA_MODE_STATUS_E status);
-WIFI_AP_MODE_STATUS_E get_wifi_ap_status();
 void set_wifi_ap_status(WIFI_AP_MODE_STATUS_E status);
 bool get_is_ap_sta_open();
 void set_is_ap_sta_open(bool isopen);
@@ -128,9 +127,7 @@ void set_system_data_tomato_info(char * work_time,char * rest_time,char * count_
 
 
 ////////////////////TP ACTION MANAGE ////////////////////////////
-void clear_tp_action(void);
 uint8_t get_tp_action_status(void);
-TP_ACTION_E get_tp_action(void);
 void check_tp_action(void);
 void set_tp_action_manage_stop_point(uint16_t x,uint16_t y);
 void set_tp_action_manage_start_point(uint16_t x,uint16_t y);

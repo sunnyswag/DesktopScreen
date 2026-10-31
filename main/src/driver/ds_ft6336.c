@@ -40,13 +40,6 @@ static void scan_ft6336()
 				i2c_master_read_slave(FT6236_TPX_TBL[i],buf,4);	//读取XY坐标值
 				gTPS.x[i]=((uint16_t)(buf[0]&0X0F)<<8)+buf[1];
 				gTPS.y[i]=((uint16_t)(buf[2]&0X0F)<<8)+buf[3];
-                // printf("%x %x %x %x x=%d y=%d\n",buf[0],buf[1],buf[2],buf[3],gTPS.x[i],gTPS.y[i]);
- 				// if((buf[0]&0XC0)!=0X80)
- 				// {
-				// 	gTPS.x[i]=gTPS.y[i]=0;//必须是contact事件，才认为有效	
-				// 	gTPS.touch_sta &=0xe0;	//清除触摸点有效标记
-				// 	return;
-				// }
  			}
  		}
  		gTPS.touch_sta |= TP_PRES_DOWN;     //触摸按下标记
@@ -98,9 +91,6 @@ static void count_position_ft6336(TP_POSITION_T *position){
 				gTPS.x[1]=gTPS.x[1]*152/200; 
 				gTPS.y[1]=gTPS.y[1]*152/200;	
 				/******调试使用****/
-				// printf("触摸点个数：:%d\r\n",gTPS.touch_count);	//FT6336U最多支持两点触控
-				// printf("x0:%d,y0:%d\r\n",gTPS.x[0],gTPS.y[0]);
-				// printf("x1:%d,y1:%d\r\n",gTPS.x[1],gTPS.y[1]);
 			}
 			break;					
 		default:
@@ -122,15 +112,6 @@ static void count_position_ft6336(TP_POSITION_T *position){
 void get_ft6336_touch_sta(TP_POSITION_T *position){
 	scan_ft6336();
 	count_position_ft6336(position);
-	// if(touch_status == 1){
-	// 	touch_status = 0;
-	// 	count ++;
-	// 	if(count%2){
-	//     	ds_screen_test();
-	// 	}else{
-    //     	ds_screen_test2();
-	// 	}
-	// }
 }
 
 //初始化

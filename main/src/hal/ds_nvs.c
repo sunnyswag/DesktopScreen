@@ -74,19 +74,6 @@ NVS_WIFI_INFO_E ds_nvs_read_wifi_info(){
     return wifi_config_flag;
 }
 
-void ds_nvs_clean_wifi_info(){
-    esp_err_t err;
-    nvs_handle_t nvs_handle;
-    err = nvs_open("wificonfig", NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) {
-        ESP_LOGI(TAG,"Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-        return ;
-    }
-    wifi_config_flag = NVS_WIFI_INFO_NULL;
-    ESP_ERROR_CHECK(nvs_set_u8(nvs_handle, "wifi_flag", (uint8_t)wifi_config_flag));
-    ESP_ERROR_CHECK(nvs_commit(nvs_handle));
-    nvs_close(nvs_handle);
-}
 
 void ds_nvs_save_city(char * city){
     esp_err_t err;
@@ -154,16 +141,4 @@ void ds_nvs_read_tomato_time(uint8_t *worktime,uint8_t *resettime,uint8_t *round
     printf("tomato time = %d %d %d\n",*worktime,*resettime,*roundtimes);
     nvs_close(nvs_handle);
     return;
-}
-
-void ds_nvs_test_func(){
-    uint8_t work,rest,times;
-    ds_nvs_read_tomato_time(&work,&rest,&times);
-    printf("%d %d %d\n",work,rest,times);
-    work = 30;
-    rest = 10;
-    times = 5;
-    ds_nvs_save_tomato_time(work,rest,times);
-    ds_nvs_read_tomato_time(&work,&rest,&times);
-    printf("%d %d %d\n",work,rest,times);
 }

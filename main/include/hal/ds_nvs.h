@@ -10,7 +10,6 @@ typedef enum{
 ///////////////////////////////WIFI///////////////////////
 void ds_nvs_save_wifi_info(char * p_ssid,char *p_psw);
 NVS_WIFI_INFO_E ds_nvs_read_wifi_info(void);
-void ds_nvs_clean_wifi_info(void);
 
 ///////////////////////////////CITY////////////////////////
 void ds_nvs_save_city(char * city);

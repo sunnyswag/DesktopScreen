@@ -41,19 +41,6 @@ static void ds_ui_timepage_num_set(const uint8_t *data){
 	}
 }
 
-static void ds_ui_timepage_num_clear(const uint8_t *data)
-{
-	unsigned int i;
-    if(g_time_page.init_status == 0){
-        for(i=0;i<192;i++){
-            spi_send_data(0xff);  
-        }  
-    }else{
-        for(i=0;i<192;i++)	     {
-		    spi_send_data(~data[i]);  
-	    }  
-    }
-}
 
 void ds_ui_timepage_show_time_init(){
     g_time_page.hour = get_system_data().hour;

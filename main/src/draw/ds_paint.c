@@ -213,15 +213,6 @@ parameter:
     Yend   : y end point
     Color  : Painted colors
 ******************************************************************************/
-void Paint_ClearWindows(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend, UWORD Color)
-{
-    UWORD X, Y;
-    for (Y = Ystart; Y < Yend; Y++) {
-        for (X = Xstart; X < Xend; X++) {//8 pixel =  1 byte
-            Paint_SetPixel(X, Y, Color);
-        }
-    }
-}
 
 /******************************************************************************
 function: Draw Point(Xpoint, Ypoint) Fill the color
@@ -232,34 +223,6 @@ parameter:
     Dot_Pixel : point size
     Dot_Style : point Style
 ******************************************************************************/
-void Paint_DrawPoint(UWORD Xpoint, UWORD Ypoint, UWORD Color,
-                     DOT_PIXEL Dot_Pixel, DOT_STYLE Dot_Style)
-{
-    if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-        printf("Paint_DrawPoint Input exceeds the normal display range\r\n");
-        printf("Xpoint = %d , Paint.Width = %d  \r\n ",Xpoint,Paint.Width);
-        printf("Ypoint = %d , Paint.Height = %d  \r\n ",Ypoint,Paint.Height);
-        return;
-    }
-
-    int16_t XDir_Num , YDir_Num;
-    if (Dot_Style == DOT_FILL_AROUND) {
-        for (XDir_Num = 0; XDir_Num < 2 * Dot_Pixel - 1; XDir_Num++) {
-            for (YDir_Num = 0; YDir_Num < 2 * Dot_Pixel - 1; YDir_Num++) {
-                // if((Xpoint + XDir_Num - Dot_Pixel) < 0 || (Ypoint + YDir_Num - Dot_Pixel) < 0)
-                //     break;
-                // printf("x = %d, y = %d\r\n", Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel);
-                Paint_SetPixel(Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel, Color);
-            }
-        }
-    } else {
-        for (XDir_Num = 0; XDir_Num <  Dot_Pixel; XDir_Num++) {
-            for (YDir_Num = 0; YDir_Num <  Dot_Pixel; YDir_Num++) {
-                Paint_SetPixel(Xpoint + XDir_Num - 1, Ypoint + YDir_Num - 1, Color);
-            }
-        }
-    }
-}
 
 /******************************************************************************
 function: Draw a line of arbitrary slope
@@ -272,52 +235,6 @@ parameter:
     Line_width : Line width
     Line_Style: Solid and dotted lines
 ******************************************************************************/
-void Paint_DrawLine(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend,
-                    UWORD Color, DOT_PIXEL Line_width, LINE_STYLE Line_Style)
-{
-    if (Xstart > Paint.Width || Ystart > Paint.Height ||
-        Xend > Paint.Width || Yend > Paint.Height) {
-        printf("Paint_DrawLine Input exceeds the normal display range\r\n");
-        return;
-    }
-
-    UWORD Xpoint = Xstart;
-    UWORD Ypoint = Ystart;
-    int dx = (int)Xend - (int)Xstart >= 0 ? Xend - Xstart : Xstart - Xend;
-    int dy = (int)Yend - (int)Ystart <= 0 ? Yend - Ystart : Ystart - Yend;
-
-    // Increment direction, 1 is positive, -1 is counter;
-    int XAddway = Xstart < Xend ? 1 : -1;
-    int YAddway = Ystart < Yend ? 1 : -1;
-
-    //Cumulative error
-    int Esp = dx + dy;
-    char Dotted_Len = 0;
-
-    for (;;) {
-        Dotted_Len++;
-        //Painted dotted line, 2 point is really virtual
-        if (Line_Style == LINE_STYLE_DOTTED && Dotted_Len % 3 == 0) {
-            //Debug("LINE_DOTTED\r\n");
-            Paint_DrawPoint(Xpoint, Ypoint, IMAGE_BACKGROUND, Line_width, DOT_STYLE_DFT);
-            Dotted_Len = 0;
-        } else {
-            Paint_DrawPoint(Xpoint, Ypoint, Color, Line_width, DOT_STYLE_DFT);
-        }
-        if (2 * Esp >= dy) {
-            if (Xpoint == Xend)
-                break;
-            Esp += dy;
-            Xpoint += XAddway;
-        }
-        if (2 * Esp <= dx) {
-            if (Ypoint == Yend)
-                break;
-            Esp += dx;
-            Ypoint += YAddway;
-        }
-    }
-}
 
 /******************************************************************************
 function: Draw a rectangle
@@ -330,27 +247,6 @@ parameter:
     Line_width: Line width
     Draw_Fill : Whether to fill the inside of the rectangle
 ******************************************************************************/
-void Paint_DrawRectangle(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend,
-                         UWORD Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill)
-{
-    if (Xstart > Paint.Width || Ystart > Paint.Height ||
-        Xend > Paint.Width || Yend > Paint.Height) {
-        printf("Input exceeds the normal display range\r\n");
-        return;
-    }
-
-    if (Draw_Fill) {
-        UWORD Ypoint;
-        for(Ypoint = Ystart; Ypoint < Yend; Ypoint++) {
-            Paint_DrawLine(Xstart, Ypoint, Xend, Ypoint, Color , Line_width, LINE_STYLE_SOLID);
-        }
-    } else {
-        Paint_DrawLine(Xstart, Ystart, Xend, Ystart, Color, Line_width, LINE_STYLE_SOLID);
-        Paint_DrawLine(Xstart, Ystart, Xstart, Yend, Color, Line_width, LINE_STYLE_SOLID);
-        Paint_DrawLine(Xend, Yend, Xend, Ystart, Color, Line_width, LINE_STYLE_SOLID);
-        Paint_DrawLine(Xend, Yend, Xstart, Yend, Color, Line_width, LINE_STYLE_SOLID);
-    }
-}
 
 /******************************************************************************
 function: Use the 8-point method to draw a circle of the
@@ -363,64 +259,6 @@ parameter:
     Line_width: Line width
     Draw_Fill : Whether to fill the inside of the Circle
 ******************************************************************************/
-void Paint_DrawCircle(UWORD X_Center, UWORD Y_Center, UWORD Radius,
-                      UWORD Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill)
-{
-    if (X_Center > Paint.Width || Y_Center >= Paint.Height) {
-        printf("Paint_DrawCircle Input exceeds the normal display range\r\n");
-        return;
-    }
-
-    //Draw a circle from(0, R) as a starting point
-    int16_t XCurrent, YCurrent;
-    XCurrent = 0;
-    YCurrent = Radius;
-
-    //Cumulative error,judge the next point of the logo
-    int16_t Esp = 3 - (Radius << 1 );
-
-    int16_t sCountY;
-    if (Draw_Fill == DRAW_FILL_FULL) {
-        while (XCurrent <= YCurrent ) { //Realistic circles
-            for (sCountY = XCurrent; sCountY <= YCurrent; sCountY ++ ) {
-                Paint_DrawPoint(X_Center + XCurrent, Y_Center + sCountY, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//1
-                Paint_DrawPoint(X_Center - XCurrent, Y_Center + sCountY, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//2
-                Paint_DrawPoint(X_Center - sCountY, Y_Center + XCurrent, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//3
-                Paint_DrawPoint(X_Center - sCountY, Y_Center - XCurrent, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//4
-                Paint_DrawPoint(X_Center - XCurrent, Y_Center - sCountY, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//5
-                Paint_DrawPoint(X_Center + XCurrent, Y_Center - sCountY, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//6
-                Paint_DrawPoint(X_Center + sCountY, Y_Center - XCurrent, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);//7
-                Paint_DrawPoint(X_Center + sCountY, Y_Center + XCurrent, Color, DOT_PIXEL_DFT, DOT_STYLE_DFT);
-            }
-            if (Esp < 0 )
-                Esp += 4 * XCurrent + 6;
-            else {
-                Esp += 10 + 4 * (XCurrent - YCurrent );
-                YCurrent --;
-            }
-            XCurrent ++;
-        }
-    } else { //Draw a hollow circle
-        while (XCurrent <= YCurrent ) {
-            Paint_DrawPoint(X_Center + XCurrent, Y_Center + YCurrent, Color, Line_width, DOT_STYLE_DFT);//1
-            Paint_DrawPoint(X_Center - XCurrent, Y_Center + YCurrent, Color, Line_width, DOT_STYLE_DFT);//2
-            Paint_DrawPoint(X_Center - YCurrent, Y_Center + XCurrent, Color, Line_width, DOT_STYLE_DFT);//3
-            Paint_DrawPoint(X_Center - YCurrent, Y_Center - XCurrent, Color, Line_width, DOT_STYLE_DFT);//4
-            Paint_DrawPoint(X_Center - XCurrent, Y_Center - YCurrent, Color, Line_width, DOT_STYLE_DFT);//5
-            Paint_DrawPoint(X_Center + XCurrent, Y_Center - YCurrent, Color, Line_width, DOT_STYLE_DFT);//6
-            Paint_DrawPoint(X_Center + YCurrent, Y_Center - XCurrent, Color, Line_width, DOT_STYLE_DFT);//7
-            Paint_DrawPoint(X_Center + YCurrent, Y_Center + XCurrent, Color, Line_width, DOT_STYLE_DFT);//0
-
-            if (Esp < 0 )
-                Esp += 4 * XCurrent + 6;
-            else {
-                Esp += 10 + 4 * (XCurrent - YCurrent );
-                YCurrent --;
-            }
-            XCurrent ++;
-        }
-    }
-}
 
 /******************************************************************************
 function: Display the string
@@ -508,22 +346,9 @@ void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pb
 }
 
 //图片全刷
-void ds_paint_image(void){
-	unsigned int i;
-	spi_send_cmd(0x24);
-	for(i=0;i<5000;i++){
-		spi_send_data(Paint._Image[i]);  
-	}  	 		
-}
 
 unsigned char gImage_last_page[5000];
 
-void ds_paint_last_page(void){
-	unsigned int i;
-	for(i=0;i<5000;i++){
-		spi_send_data(gImage_last_page[i]);  
-	}  	 		
-}
 
 void ds_paint_image_new(){
     unsigned int i;

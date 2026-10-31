@@ -10,7 +10,6 @@
 #include "ds_wifi_ap_sta.h"
 #include "ds_system_data.h"
 #include "ds_http_server.h"
-#include "ds_dns_server.h"
 #include "ds_pwm.h"
 #include "ds_ui_page_manage.h"
 
@@ -33,16 +32,6 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
         esp_wifi_connect();
         set_wifi_sta_status(WIFI_STA_MODE_INIT);
         ESP_LOGI(TAG, "retry to connect to the AP");
-        // s_retry_num++;
-        // if(s_retry_num >= 200){
-        //     set_wifi_sta_status(WIFI_STA_MODE_CONNECT_TIMEOUT);
-        //     s_retry_num = 0;
-        //     ESP_LOGI(TAG, "connect to the AP timeout");
-        // }else{
-        //     esp_wifi_connect();
-        //     set_wifi_sta_status(WIFI_STA_MODE_INIT);
-        //     ESP_LOGI(TAG, "retry to connect to the AP");
-        // }
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "connect success ! got ip:" IPSTR, IP2STR(&event->ip_info.ip));

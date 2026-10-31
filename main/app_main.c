@@ -23,16 +23,11 @@
 
 #include "esp_task_wdt.h"
 
-#include "ds_test.h"
-#include "ds_wifi_scan.h"
 #include "ds_ft6336.h"
 #include "ds_screen.h"
 #include "ds_spi.h"
-#include "ds_wifi_ap.h"
-#include "ds_wifi_sta.h"
 #include "ds_system_data.h"
 #include "ds_nvs.h"
-#include "ds_https_request.h"
 #include "ds_http_request.h"
 #include "ds_timer.h"
 #include "ds_spiffs.h"
@@ -42,7 +37,6 @@
 #include "ds_ui_wordpage.h"
 #include "ds_ui_tomatopage.h"
 #include "ds_ui_fans.h"
-#include "ds_font.h"
 #include "ds_paint.h"
 #include "ds_wifi_ap_sta.h"
 #include "ds_pwm.h"
@@ -226,10 +220,6 @@ void app_main(void)
     //PWM蜂鸣器初始化
     ds_pwm_init();
 
-    //默认Wifi账号密码设置
-    // char *ssid="leo";
-    // char *psw="123456789";
-    // ds_nvs_save_wifi_info(ssid,psw);
     if(NVS_WIFI_INFO_HAS_SAVE == ds_nvs_read_wifi_info()){
         //已经存储wifi联网信息
         ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
@@ -245,17 +235,4 @@ void app_main(void)
     
     //进入低功耗模式
     sleep_mode_init();
-
-    for(;;){
-        printf("app run \n");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        //喂狗
-        esp_task_wdt_reset();  //Comment this line to trigger a TWDT timeout
-
-        //堆栈信息打印，需打开USE_TRACE_FACILITY、USE_STATS_FORMATTING_FUNCTIONS
-        // vTaskList((char *)&pWriteBuffer);
-        // printf("task_name   task_state  priority   stack  tasK_num\n");
-        // printf("%s\n", pWriteBuffer);  
-    }
-    esp_task_wdt_delete(NULL);
 }

@@ -1,17 +1,11 @@
 
 idf_component_register(
                         SRCS "app_main.c"
-                                "src/ds_test.c"
 
 
-                                "src/net/ds_wifi_scan.c"
-                                "src/net/ds_wifi_ap.c"
-                                "src/net/ds_https_request.c"
                                 "src/net/ds_http_server.c"
-                                "src/net/ds_wifi_sta.c"
                                 "src/net/ds_http_request.c"
                                 "src/net/ds_wifi_ap_sta.c"
-                                "src/net/ds_dns_server.c"
                                 "src/net/ds_sntp.c"
 
                                 "src/driver/ds_ft6336.c"
@@ -58,7 +52,4 @@ idf_component_register(
                         EMBED_FILES 
                                 "favicon.ico"
                                 "setting.html"
-                        EMBED_TXTFILES
-                                "server_root_cert.pem"
-                                "server_root_cert_bilibili.pem"
                         )

@@ -158,9 +158,6 @@ void ds_screen_gpio_init(){
     // gpio_isr_handler_add(SCREEN_GPIO_INTPUT_BUSY, gpio_isr_handler, (void*) SCREEN_GPIO_INTPUT_BUSY);
 }
 
-void ds_gpio_init(){
-    ds_touch_gpio_init();
-}
 
 void ds_gpio_set_screen_cs(uint32_t level){
     gpio_set_level(SCREEN_GPIO_OUTPUT_CS, level);

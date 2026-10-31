@@ -77,16 +77,6 @@ static void ds_ui_tomatopage_num_set(const uint8_t *data){
 	}
 }
 
-static void ds_ui_tomatopage_num_clear(const uint8_t *data)
-{
-	unsigned int i;
-    for(i=0;i<192;i++){
-		spi_send_data(~data[i]);  
-	}  
-    for(i=0;i<32;i++){	
-		spi_send_data(0);
-	}
-}
 
 static void ds_ui_tomatopage_update(){
     if(g_tomato_page.is_updateing)

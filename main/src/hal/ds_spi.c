@@ -20,10 +20,6 @@
 
 #define DMA_CHAN    2
 
-// #define PIN_NUM_MISO 0
-// #define PIN_NUM_MOSI 5
-// #define PIN_NUM_CLK  25
-// #define PIN_NUM_CS   27
 
 #define PIN_NUM_MISO 23
 #define PIN_NUM_MOSI 26
@@ -69,12 +65,6 @@ void spi_send_data(const uint8_t data)
 
 //This function is called (in irq context!) just before a transmission starts. It will
 //set the D/C line to the value indicated in the user field.
-void spi_pre_transfer_callback(spi_transaction_t *t)
-{
-    int dc=(int)t->user;
-    printf("dc callback\n");
-    ds_gpio_set_screen_dc(dc);
-}
 
 void screen_spi_init(void)
 {
@@ -101,20 +91,4 @@ void screen_spi_init(void)
     ret=spi_bus_add_device(HSPI_HOST, &devcfg, &spi);
     ESP_ERROR_CHECK(ret);
     
-}
-
-void screen_spi_test(){
-    spi_send_cmd(0x55);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    spi_send_data(0x55);
-    // ds_gpio_set_screen_rst(0);		// Module reset
-	// vTaskDelay(10 / portTICK_PERIOD_MS);
-	// ds_gpio_set_screen_rst(1);
-	// vTaskDelay(10 / portTICK_PERIOD_MS);
-
-    // ds_gpio_set_screen_dc(0);		// Module reset
-	// vTaskDelay(10 / portTICK_PERIOD_MS);
-	// ds_gpio_set_screen_dc(1);
-	// vTaskDelay(10 / portTICK_PERIOD_MS);
-    // printf("ds_gpio_get_screen_busy() %d\n",ds_gpio_get_screen_busy());
 }

@@ -71,9 +71,6 @@ void set_wifi_sta_status(WIFI_STA_MODE_STATUS_E status){
 }
 
 //获取ap模式状态
-WIFI_AP_MODE_STATUS_E get_wifi_ap_status(){
-    return g_system_data.wifi_ap_status;
-}
 
 void set_wifi_ap_status(WIFI_AP_MODE_STATUS_E status){
     g_system_data.wifi_ap_status = status;
@@ -241,13 +238,7 @@ uint8_t get_tp_action_status(){
     return g_system_data.tp_action_manage.status;
 }
 
-TP_ACTION_E get_tp_action(){
-    return g_system_data.tp_action_manage.tp_action;
-}
 
-void clear_tp_action(){
-    g_system_data.tp_action_manage.tp_action = TP_ACTION_NULL;
-}
 
 void set_tp_wackup_timeleft(uint32_t timeleft){
     //600/1s 10min
