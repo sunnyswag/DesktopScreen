@@ -14,7 +14,7 @@
 #include "freertos/queue.h"
 #include "ds_pwm.h"
 
-static xQueueHandle beep_queue = NULL;
+static QueueHandle_t beep_queue = NULL;
 
 #define SERVO_PULSE_GPIO        (15)   // GPIO connects to the PWM signal line
 

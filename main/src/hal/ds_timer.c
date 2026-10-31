@@ -13,6 +13,7 @@
 #include "freertos/queue.h"
 #include "driver/periph_ctrl.h"
 #include "driver/timer.h"
+#include "soc/soc.h"
 
 #include "ds_timer.h"
 #include "ds_system_data.h"
@@ -21,7 +22,8 @@
 #include "ds_ui_tomatopage.h"
 
 #define TIMER_DIVIDER         16  //  Hardware timer clock divider
-#define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER/1000)  // convert counter value to ms seconds
+// ESP32 legacy timer defaults to the 80 MHz APB clock; divider 16 gives 5000 ticks/ms.
+#define TIMER_SCALE           (APB_CLK_FREQ / TIMER_DIVIDER/1000)  // convert counter value to ms seconds
 #define TIMER_INTERVAL0_SEC   (10) // sample test interval for the first timer
 #define TEST_WITH_RELOAD      1        // testing will be done with auto reload
 
@@ -37,8 +39,8 @@ typedef struct {
 
 timer_event_t g_timer_event;
 
-xQueueHandle timer_queue;
-xQueueHandle ui_update_timer_queue;
+QueueHandle_t timer_queue;
+QueueHandle_t ui_update_timer_queue;
 
 /*
  * Timer group0 ISR handler

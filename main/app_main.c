@@ -7,11 +7,13 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <inttypes.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
-#include "esp_spi_flash.h"
+#include "esp_flash.h"
+#include "esp_chip_info.h"
 #include "nvs_flash.h"
 #include "esp_event.h"
 
@@ -65,7 +67,7 @@ static void sleep_mode_init(){
             esp_task_wdt_reset(); 
             vTaskDelay(pdMS_TO_TICKS(1000));
             count_tp_wackup_timeleft();
-            printf("wait enter sleep mode run... %d\n",get_tp_wackup_timeleft());
+            printf("wait enter sleep mode run... %" PRIu32 "\n",get_tp_wackup_timeleft());
             if(get_is_ap_sta_open() == false && ds_ui_get_now_show_page() == PAGE_TYPE_MEMU && get_tp_wackup_timeleft() == 0){
                 break;
             }
@@ -114,7 +116,7 @@ static void sleep_mode_init(){
                 reset_tp_action_manage();
                 break;
         }
-        printf("Returned from light sleep, reason: %s, t=%lld ms, slept for %lld ms  wackup_timeleft=%d\n",
+        printf("Returned from light sleep, reason: %s, t=%" PRId64 " ms, slept for %" PRId64 " ms  wackup_timeleft=%" PRIu32 "\n",
                 wakeup_reason, t_after_us / 1000, (t_after_us - t_before_us) / 1000,wackup_timeleft);
 
         set_tp_wackup_timeleft(wackup_timeleft);
@@ -184,7 +186,9 @@ void app_main(void)
 
     printf("silicon revision %d, ", chip_info.revision);
 
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+    uint32_t size = 0;
+    esp_flash_get_size(NULL, &size);
+    printf("%" PRIu32 "MB %s flash\n", size / (1024 * 1024),
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("sw revision V4.0.3 \n");

@@ -3,10 +3,12 @@
 #include "esp_system.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_mac.h"
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
 #include <string.h>
+#include <inttypes.h>
 #include "ds_wifi_ap_sta.h"
 #include "ds_system_data.h"
 #include "ds_http_server.h"
@@ -18,13 +20,13 @@
 esp_netif_t *sta;
 esp_netif_t *ap;
 
-xQueueHandle wifi_event_queue;
+QueueHandle_t wifi_event_queue;
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data)
 {
     static int s_retry_num = 0;
-    ESP_LOGI(TAG, "event_base = %s event_id = %d",event_base,event_id);
+    ESP_LOGI(TAG, "event_base = %s event_id = %" PRId32,event_base,event_id);
     //STA event
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();

@@ -58,14 +58,14 @@ void initialize_sntp(void)
     ESP_LOGI(TAG, "Initializing SNTP");
     if (sntp_1st_init) // doing this again?
     {
-        sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        sntp_setservername(0, "pool.ntp.org");
-        sntp_set_time_sync_notification_cb(time_sync_notification_cb);
-        sntp_init();
+        esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        esp_sntp_setservername(0, "pool.ntp.org");
+        esp_sntp_set_time_sync_notification_cb(time_sync_notification_cb);
+        esp_sntp_init();
         sntp_1st_init = false;
     }else{
         ESP_LOGI(TAG, "Syncing System Time");
-        sntp_stop();
-        sntp_init();
+        esp_sntp_stop();
+        esp_sntp_init();
     }
 }

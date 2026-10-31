@@ -7,6 +7,7 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <string.h>
+#include <inttypes.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -38,7 +39,7 @@ static const char *TAG = "HTTP_CLIENT";
 
 int fans_type = 0;
 
-xQueueHandle http_request_event_queue;
+QueueHandle_t http_request_event_queue;
 
 /*
 {
@@ -226,6 +227,8 @@ static esp_err_t _http_time_event_handle(esp_http_client_event_t *evt)
     static char* output_buffer; // Buffer to store response of http request from event handler
     static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
+        case HTTP_EVENT_REDIRECT:
+            break;
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
@@ -284,6 +287,8 @@ static esp_err_t _http_weather_event_handle(esp_http_client_event_t *evt)
     static char* output_buffer; // Buffer to store response of http request from event handler
     static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
+        case HTTP_EVENT_REDIRECT:
+            break;
         case HTTP_EVENT_ERROR:
             ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
             break;
@@ -358,6 +363,8 @@ static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
     static char* output_buffer; // Buffer to store response of http request from event handler
     static int output_len; // Stores number of bytes read
     switch(evt->event_id) {
+        case HTTP_EVENT_REDIRECT:
+            break;
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
@@ -411,6 +418,8 @@ static esp_err_t _http_fans_event_handle(esp_http_client_event_t *evt)
 static esp_err_t _http_city_event_handle(esp_http_client_event_t *evt)
 {
     switch(evt->event_id) {
+        case HTTP_EVENT_REDIRECT:
+            break;
         case HTTP_EVENT_ON_DATA://接收数据事件
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
@@ -457,7 +466,7 @@ void http_time_get(){
 
 	if(err == ESP_OK)
 	{
-		ESP_LOGI(TAG, "Status = %d, content_length = %d",
+		ESP_LOGI(TAG, "Status = %d, content_length = %" PRId64,
 				esp_http_client_get_status_code(time_client),//状态码
 				esp_http_client_get_content_length(time_client));//数据长度
 	}
@@ -495,7 +504,7 @@ void http_weather_get(){
 
 	if(err == ESP_OK)
 	{
-		ESP_LOGI(TAG, "Status = %d, content_length = %d",
+		ESP_LOGI(TAG, "Status = %d, content_length = %" PRId64,
 				esp_http_client_get_status_code(weather_client),//状态码
 				esp_http_client_get_content_length(weather_client));//数据长度
 	}
@@ -529,7 +538,7 @@ void http_fans_get(){
 
 	if(err == ESP_OK)
 	{
-		ESP_LOGI(TAG, "Status = %d, content_length = %d",
+		ESP_LOGI(TAG, "Status = %d, content_length = %" PRId64,
 				esp_http_client_get_status_code(fans_client),//状态码
 				esp_http_client_get_content_length(fans_client));//数据长度
 	}
@@ -550,7 +559,7 @@ void http_city_get(){
 
 	if(err == ESP_OK)
 	{
-		ESP_LOGI(TAG, "Status = %d, content_length = %d",
+		ESP_LOGI(TAG, "Status = %d, content_length = %" PRId64,
 				esp_http_client_get_status_code(city_client),//状态码
 				esp_http_client_get_content_length(city_client));//数据长度
 	}
