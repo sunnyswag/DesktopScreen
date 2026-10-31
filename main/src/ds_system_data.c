@@ -30,7 +30,7 @@ SYSTRM_DATA_T get_system_data(){
 void set_system_data_wifi_info(char * p_ssid,char *p_psw){
     int p_ssidlen = strlen(p_ssid);
     int p_pswlen = strlen(p_psw);
-    if(p_pswlen >= MAX_SETTING_SSID_LEN || p_ssidlen >= MAX_SETTING_PSW_LEN){
+    if(p_ssidlen >= MAX_SETTING_SSID_LEN || p_pswlen >= MAX_SETTING_PSW_LEN){
         ESP_LOGE(TAG, "MAX_SETTING_SSID_PWD_LEN ERROR");
         return;
     }

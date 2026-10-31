@@ -4,6 +4,10 @@
 
 > 原始代码来自**小智学长**的公开教程。本仓库在它的基础上做学习记录，后续会迁移到 NuttX，见 [desktopscreen-nuttx](https://github.com/sunnyswag/desktopscreen-nuttx)。
 
+## 开发记录与资料
+
+[桌面小屏幕项目开发记录](docs/development-notes.md)：课程与硬件资料、采购及学习记录、WSL2 串口配置、网页配网与连接排查，以及 NuttX 重写计划。
+
 ## 分支
 
 | 分支 / 标签 | 说明 |
