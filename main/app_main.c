@@ -23,8 +23,6 @@
 #include <sys/time.h>
 #include "esp_timer.h"
 
-#include "esp_task_wdt.h"
-
 #include "ds_ft6336.h"
 #include "ds_screen.h"
 #include "ds_spi.h"
@@ -64,7 +62,6 @@ static void sleep_mode_init(){
         
         //ap&sta关闭、且当前在主页、且超过5min未触摸时才进入低功耗
         do {
-            esp_task_wdt_reset(); 
             vTaskDelay(pdMS_TO_TICKS(1000));
             count_tp_wackup_timeleft();
             printf("wait enter sleep mode run... %" PRIu32 "\n",get_tp_wackup_timeleft());
