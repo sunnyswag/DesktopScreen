@@ -23,62 +23,62 @@ ROTATE_IMAGE Epd_Rotate = ROTATE_90;
 
 uint8_t UTF8toUnicode(uint8_t *ch, uint16_t *_unicode)
 {
-    uint8_t *p = NULL ,n = 0;
+    uint8_t *p = NULL, n = 0;
     uint32_t e = 0;
     p = ch;
-    if(1)//p == NULL
+    if (1) // p == NULL
     {
-            if(*p >= 0xfc)
-            {
-                    /*6:<11111100>*/
-                    e  = (p[0] & 0x01) << 30;
-                    e |= (p[1] & 0x3f) << 24;
-                    e |= (p[2] & 0x3f) << 18;
-                    e |= (p[3] & 0x3f) << 12;
-                    e |= (p[4] & 0x3f) << 6;
-                    e |= (p[5] & 0x3f);
-                    n = 6;
-            }
-            else if(*p >= 0xf8)
-            {
-                    /*5:<11111000>*/
-                    e = (p[0] & 0x03) << 24;
-                    e |= (p[1] & 0x3f) << 18;
-                    e |= (p[2] & 0x3f) << 12;
-                    e |= (p[3] & 0x3f) << 6;
-                    e |= (p[4] & 0x3f);
-                    n = 5;
-            }
-            else if(*p >= 0xf0)
-            {
-                    /*4:<11110000>*/
-                    e = (p[0] & 0x07) << 18;
-                    e |= (p[1] & 0x3f) << 12;
-                    e |= (p[2] & 0x3f) << 6;
-                    e |= (p[3] & 0x3f);
-                    n = 4;
-            }
-            else if(*p >= 0xe0)
-            {
-                    /*3:<11100000>*/
-                    e = (p[0] & 0x0f) << 12;
-                    e |= (p[1] & 0x3f) << 6;
-                    e |= (p[2] & 0x3f);
-                    n = 3;
-            }
-            else if(*p >= 0xc0)
-            {
-                    /*2:<11000000>*/
-                    e = (p[0] & 0x1f) << 6;
-                    e |= (p[1] & 0x3f);
-                    n = 2;
-            }
-            else
-            {
-                    e = p[0];           
-                    n = 1;
-            }
-            *_unicode = e;
+        if (*p >= 0xfc)
+        {
+            /*6:<11111100>*/
+            e = (p[0] & 0x01) << 30;
+            e |= (p[1] & 0x3f) << 24;
+            e |= (p[2] & 0x3f) << 18;
+            e |= (p[3] & 0x3f) << 12;
+            e |= (p[4] & 0x3f) << 6;
+            e |= (p[5] & 0x3f);
+            n = 6;
+        }
+        else if (*p >= 0xf8)
+        {
+            /*5:<11111000>*/
+            e = (p[0] & 0x03) << 24;
+            e |= (p[1] & 0x3f) << 18;
+            e |= (p[2] & 0x3f) << 12;
+            e |= (p[3] & 0x3f) << 6;
+            e |= (p[4] & 0x3f);
+            n = 5;
+        }
+        else if (*p >= 0xf0)
+        {
+            /*4:<11110000>*/
+            e = (p[0] & 0x07) << 18;
+            e |= (p[1] & 0x3f) << 12;
+            e |= (p[2] & 0x3f) << 6;
+            e |= (p[3] & 0x3f);
+            n = 4;
+        }
+        else if (*p >= 0xe0)
+        {
+            /*3:<11100000>*/
+            e = (p[0] & 0x0f) << 12;
+            e |= (p[1] & 0x3f) << 6;
+            e |= (p[2] & 0x3f);
+            n = 3;
+        }
+        else if (*p >= 0xc0)
+        {
+            /*2:<11000000>*/
+            e = (p[0] & 0x1f) << 6;
+            e |= (p[1] & 0x3f);
+            n = 2;
+        }
+        else
+        {
+            e = p[0];
+            n = 1;
+        }
+        *_unicode = e;
     }
     return n;
 }
@@ -98,21 +98,24 @@ void Paint_NewImage(UBYTE *_image, UWORD Width, UWORD Height, UWORD Rotate, UWOR
 
     Paint.WidthMemory = Width;
     Paint.HeightMemory = Height;
-    Paint.Color = Color;    
+    Paint.Color = Color;
     Paint.Scale = 2;
-    
-    Paint.WidthByte = (Width % 8 == 0)? (Width / 8 ): (Width / 8 + 1);
-    Paint.HeightByte = Height;    
-//    printf("WidthByte = %d, HeightByte = %d\r\n", Paint.WidthByte, Paint.HeightByte);
-//    printf(" EPD_WIDTH / 8 = %d\r\n",  122 / 8);
-   
+
+    Paint.WidthByte = (Width % 8 == 0) ? (Width / 8) : (Width / 8 + 1);
+    Paint.HeightByte = Height;
+    //    printf("WidthByte = %d, HeightByte = %d\r\n", Paint.WidthByte, Paint.HeightByte);
+    //    printf(" EPD_WIDTH / 8 = %d\r\n",  122 / 8);
+
     Paint.Rotate = Rotate;
     Paint.Mirror = MIRROR_NONE;
-    
-    if(Rotate == ROTATE_0 || Rotate == ROTATE_180) {
+
+    if (Rotate == ROTATE_0 || Rotate == ROTATE_180)
+    {
         Paint.Width = Width;
         Paint.Height = Height;
-    } else {
+    }
+    else
+    {
         Paint.Width = Height;
         Paint.Height = Width;
     }
@@ -123,11 +126,7 @@ function: Select _Image
 parameter:
     _image : Pointer to the _image cache
 ******************************************************************************/
-void Paint_SelectImage(UBYTE *_image)
-{
-    Paint._Image = _image;
-}
-
+void Paint_SelectImage(UBYTE *_image) { Paint._Image = _image; }
 
 /******************************************************************************
 function: Draw Pixels
@@ -138,16 +137,18 @@ parameter:
 ******************************************************************************/
 void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
 {
-    if(Xpoint > Paint.Width || Ypoint > Paint.Height){
-        printf("Exceeding display boundaries Xpoint*Ypoint=%d*%d\r\n",Xpoint,Ypoint);
+    if (Xpoint > Paint.Width || Ypoint > Paint.Height)
+    {
+        printf("Exceeding display boundaries Xpoint*Ypoint=%d*%d\r\n", Xpoint, Ypoint);
         return;
-    }      
+    }
     UWORD X, Y;
 
-    switch(Paint.Rotate) {
+    switch (Paint.Rotate)
+    {
     case 0:
         X = Xpoint;
-        Y = Ypoint;  
+        Y = Ypoint;
         break;
     case 90:
         X = Paint.WidthMemory - Ypoint - 1;
@@ -164,8 +165,9 @@ void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
     default:
         return;
     }
-    
-    switch(Paint.Mirror) {
+
+    switch (Paint.Mirror)
+    {
     case MIRROR_NONE:
         break;
     case MIRROR_HORIZONTAL:
@@ -182,25 +184,29 @@ void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
         return;
     }
 
-    if(X > Paint.WidthMemory || Y > Paint.HeightMemory){
-        printf("Exceeding display boundaries X*Y=%d*%d\r\n",X,Y);
+    if (X > Paint.WidthMemory || Y > Paint.HeightMemory)
+    {
+        printf("Exceeding display boundaries X*Y=%d*%d\r\n", X, Y);
         return;
     }
-    
-    if(Paint.Scale == 2){
+
+    if (Paint.Scale == 2)
+    {
         UDOUBLE Addr = X / 8 + Y * Paint.WidthByte;
         UBYTE Rdata = Paint._Image[Addr];
-        if(Color == BLACK)
+        if (Color == BLACK)
             Paint._Image[Addr] = Rdata & ~(0x80 >> (X % 8));
         else
             Paint._Image[Addr] = Rdata | (0x80 >> (X % 8));
-    }else if(Paint.Scale == 4){
+    }
+    else if (Paint.Scale == 4)
+    {
         UDOUBLE Addr = X / 4 + Y * Paint.WidthByte;
-        Color = Color % 4;//Guaranteed color scale is 4  --- 0~3
+        Color = Color % 4; // Guaranteed color scale is 4  --- 0~3
         UBYTE Rdata = Paint._Image[Addr];
-        
-        Rdata = Rdata & (~(0xC0 >> ((X % 4)*2)));
-        Paint._Image[Addr] = Rdata | ((Color << 6) >> ((X % 4)*2));
+
+        Rdata = Rdata & (~(0xC0 >> ((X % 4) * 2)));
+        Paint._Image[Addr] = Rdata | ((Color << 6) >> ((X % 4) * 2));
     }
 }
 
@@ -211,9 +217,11 @@ parameter:
 ******************************************************************************/
 void Paint_Clear(UWORD Color)
 {
-    for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-        for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
-            UDOUBLE Addr = X + Y*Paint.WidthByte;
+    for (UWORD Y = 0; Y < Paint.HeightByte; Y++)
+    {
+        for (UWORD X = 0; X < Paint.WidthByte; X++)
+        { // 8 pixel =  1 byte
+            UDOUBLE Addr = X + Y * Paint.WidthByte;
             Paint._Image[Addr] = Color;
         }
     }
@@ -286,93 +294,111 @@ parameter:
     Color_Foreground : Select the foreground color
     Color_Background : Select the background color
 ******************************************************************************/
-void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
-                        UWORD Color_Foreground, UWORD Color_Background)
+void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char *pString, UWORD Color_Foreground,
+                         UWORD Color_Background)
 {
-    const char* pstr = pString;
+    const char *pstr = pString;
     int i;
-    uint8_t  bitmap[300];
+    uint8_t bitmap[300];
     i = 0;
     uint16_t char_cn_un = 0;
-    
-    //当前中文字数
+
+    // 当前中文字数
     uint16_t cn_data_num = 0;
     uint16_t cn_box_w = 0;
-    //当前英文字数
+    // 当前英文字数
     uint16_t en_data_num = 0;
     uint16_t en_box_w = 0;
-    while (*(pstr+i) != '\0')
+    while (*(pstr + i) != '\0')
     {
-        memset(&bitmap,0,sizeof(bitmap));
-        UTF8toUnicode((uint8_t*)pstr+i,&char_cn_un);
-        uint8_t box_w = 0,box_h = 0;
-        uint8_t offset_x = 0,offset_y = 0;
-        int size = ds_get_bitmap(char_cn_un,bitmap,&box_w,&box_h,&offset_x,&offset_y);
-            
-        uint8_t page_len = box_h;  //box_h
-        uint8_t colnum_len = box_w/2; //box_w/2
-        printf("page_len %d  colnum_len %d\n",page_len,colnum_len); 
-        for(uint8_t Page = 0; Page < page_len; Page ++) //0-127
-        { 
-            for (uint8_t Column = 0; Column < colnum_len; Column++) //0-1
+        memset(&bitmap, 0, sizeof(bitmap));
+        UTF8toUnicode((uint8_t *)pstr + i, &char_cn_un);
+        uint8_t box_w = 0, box_h = 0;
+        uint8_t offset_x = 0, offset_y = 0;
+        int size = ds_get_bitmap(char_cn_un, bitmap, &box_w, &box_h, &offset_x, &offset_y);
+
+        uint8_t page_len = box_h;       // box_h
+        uint8_t colnum_len = box_w / 2; // box_w/2
+        printf("page_len %d  colnum_len %d\n", page_len, colnum_len);
+        for (uint8_t Page = 0; Page < page_len; Page++) // 0-127
+        {
+            for (uint8_t Column = 0; Column < colnum_len; Column++) // 0-1
             {
-                uint8_t tmp = bitmap[Page*colnum_len + Column]; 
-                // printf("%x ",tmp);  
-                for(int index = 0;index < 8 ;index += 4){
-                    if (((tmp >> index) & 0x0f) >= 1){
-                        Paint_SetPixel( Xstart + 2*Column + (1- index/4) + (en_box_w + cn_box_w)+(en_data_num+cn_data_num)*3 + offset_x,Ystart+ Page -offset_y -page_len    , Color_Background);
-                    }else{
-                        Paint_SetPixel(  Xstart + 2*Column + (1- index/4) + (en_box_w + cn_box_w)+(en_data_num+cn_data_num)*3 + offset_x,Ystart+ Page - offset_y -page_len  , Color_Foreground);
+                uint8_t tmp = bitmap[Page * colnum_len + Column];
+                // printf("%x ",tmp);
+                for (int index = 0; index < 8; index += 4)
+                {
+                    if (((tmp >> index) & 0x0f) >= 1)
+                    {
+                        Paint_SetPixel(Xstart + 2 * Column + (1 - index / 4) +
+                                           (en_box_w + cn_box_w) + (en_data_num + cn_data_num) * 3 +
+                                           offset_x,
+                                       Ystart + Page - offset_y - page_len, Color_Background);
+                    }
+                    else
+                    {
+                        Paint_SetPixel(Xstart + 2 * Column + (1 - index / 4) +
+                                           (en_box_w + cn_box_w) + (en_data_num + cn_data_num) * 3 +
+                                           offset_x,
+                                       Ystart + Page - offset_y - page_len, Color_Foreground);
                     }
                 }
             }
-            // printf("\n"); 
+            // printf("\n");
         }
 
-        if (*(pstr+i) >= 128){
-            //中文4byte
-            i+=3;
-            cn_data_num ++;
+        if (*(pstr + i) >= 128)
+        {
+            // 中文4byte
+            i += 3;
+            cn_data_num++;
             cn_box_w += box_w;
-        }else{
+        }
+        else
+        {
             i++;
-            en_data_num ++;
+            en_data_num++;
             en_box_w += box_w;
         }
     }
 }
 
-void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pbuf ,int plen,int pxsize,
-                        UWORD Color_Foreground, UWORD Color_Background)
+void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart, const unsigned char *pbuf, int plen,
+                             int pxsize, UWORD Color_Foreground, UWORD Color_Background)
 {
-    uint8_t width = (pxsize%8 == 0) ? (pxsize/8) : (pxsize/8+1);
+    uint8_t width = (pxsize % 8 == 0) ? (pxsize / 8) : (pxsize / 8 + 1);
     uint8_t height = plen / width;
-    for(int y = 0;y < height; y ++){
-        for(int x = 0;x < width ;x ++){
-            for(int index = 0;index < 8;index ++){
-                if(((pbuf[y*width + x]>>(7-index)) & 0x01) == 1){
-                    Paint_SetPixel( Xstart + x*8 + index ,Ystart+ y , Color_Background);
-                }else{
-                    Paint_SetPixel(  Xstart + x*8 + index,Ystart+ y , Color_Foreground);
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int index = 0; index < 8; index++)
+            {
+                if (((pbuf[y * width + x] >> (7 - index)) & 0x01) == 1)
+                {
+                    Paint_SetPixel(Xstart + x * 8 + index, Ystart + y, Color_Background);
+                }
+                else
+                {
+                    Paint_SetPixel(Xstart + x * 8 + index, Ystart + y, Color_Foreground);
                 }
             }
         }
     }
 }
 
-//图片全刷
+// 图片全刷
 
 unsigned char gImage_last_page[5000];
 
-
-void ds_paint_image_new(){
+void ds_paint_image_new()
+{
     unsigned int i;
-    spi_send_byte(0x24, SPI_BYTE_COMMAND); 
-    for(i=0;i<5000;i++){
-        spi_send_byte(Paint._Image[i], SPI_BYTE_DATA);  
-	}  	 	
+    spi_send_byte(0x24, SPI_BYTE_COMMAND);
+    for (i = 0; i < 5000; i++)
+    {
+        spi_send_byte(Paint._Image[i], SPI_BYTE_DATA);
+    }
 }
 
-void ds_paint_image_copy(){
-    memcpy(gImage_last_page,Paint._Image,5000);
-}
+void ds_paint_image_copy() { memcpy(gImage_last_page, Paint._Image, 5000); }

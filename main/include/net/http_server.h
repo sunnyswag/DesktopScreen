@@ -3,6 +3,4 @@
 
 void ds_http_server_init(void);
 
-
 #endif
-

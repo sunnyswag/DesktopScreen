@@ -21,17 +21,18 @@
 #include "ui_timepage.h"
 #include "ui_tomatopage.h"
 
-#define TIMER_DIVIDER         16  //  Hardware timer clock divider
+#define TIMER_DIVIDER 16 //  Hardware timer clock divider
 // ESP32 legacy timer defaults to the 80 MHz APB clock; divider 16 gives 5000 ticks/ms.
-#define TIMER_SCALE           (APB_CLK_FREQ / TIMER_DIVIDER/1000)  // convert counter value to ms seconds
-#define TIMER_INTERVAL0_SEC   (10) // sample test interval for the first timer
-#define TEST_WITH_RELOAD      1        // testing will be done with auto reload
+#define TIMER_SCALE (APB_CLK_FREQ / TIMER_DIVIDER / 1000) // convert counter value to ms seconds
+#define TIMER_INTERVAL0_SEC (10) // sample test interval for the first timer
+#define TEST_WITH_RELOAD 1       // testing will be done with auto reload
 
 /*
  * A sample structure to pass events
  * from the timer interrupt handler to the main program.
  */
-typedef struct {
+typedef struct
+{
     uint64_t timer_minute_count;
     uint64_t timer_second_count;
     uint64_t timer_second_count_isr;
@@ -53,7 +54,7 @@ QueueHandle_t ui_update_timer_queue;
 void IRAM_ATTR timer_group0_isr(void *para)
 {
     // timer_spinlock_take(TIMER_GROUP_0);
-    int timer_idx = (int) para;
+    int timer_idx = (int)para;
 
     // /* Prepare basic event data
     //    that will be then sent back to the main program task */
@@ -66,9 +67,10 @@ void IRAM_ATTR timer_group0_isr(void *para)
     timer_group_enable_alarm_in_isr(TIMER_GROUP_0, timer_idx);
 
     /* Now just send the event data back to the main program task */
-    g_timer_event.timer_second_count_isr ++;
-    //1s计算一次 
-    if(g_timer_event.timer_second_count_isr >= 100){
+    g_timer_event.timer_second_count_isr++;
+    // 1s计算一次
+    if (g_timer_event.timer_second_count_isr >= 100)
+    {
         g_timer_event.timer_second_count_isr = 0;
         update_system_time_second();
     }
@@ -84,8 +86,7 @@ void IRAM_ATTR timer_group0_isr(void *para)
  * auto_reload - should the timer auto reload on alarm?
  * timer_interval_sec - the interval of alarm to set
  */
-static void tg0_timer_init(int timer_idx,
-                                   bool auto_reload, double timer_interval_sec)
+static void tg0_timer_init(int timer_idx, bool auto_reload, double timer_interval_sec)
 {
     /* Select and initialize basic parameters of the timer */
     timer_config_t config = {
@@ -104,8 +105,8 @@ static void tg0_timer_init(int timer_idx,
     /* Configure the alarm value and the interrupt on alarm. */
     timer_set_alarm_value(TIMER_GROUP_0, timer_idx, timer_interval_sec * TIMER_SCALE);
     timer_enable_intr(TIMER_GROUP_0, timer_idx);
-    timer_isr_register(TIMER_GROUP_0, timer_idx, timer_group0_isr,
-                       (void *) timer_idx, ESP_INTR_FLAG_IRAM, NULL);
+    timer_isr_register(TIMER_GROUP_0, timer_idx, timer_group0_isr, (void *)timer_idx,
+                       ESP_INTR_FLAG_IRAM, NULL);
 
     timer_start(TIMER_GROUP_0, timer_idx);
 }
@@ -115,19 +116,23 @@ static void tg0_timer_init(int timer_idx,
  */
 static void timer_evt_task(void *arg)
 {
-    while (1) {
+    while (1)
+    {
         timer_event_t evt;
         xQueueReceive(timer_queue, &evt, portMAX_DELAY);
         count_tp_action_manage_time();
         TP_POSITION_T position;
-        if(get_tp_action_status() > 0 && get_tp_action_status() <= 2){
+        if (get_tp_action_status() > 0 && get_tp_action_status() <= 2)
+        {
             get_ft6336_touch_sta(&position);
-            if(position.status != 0)
-                set_tp_action_manage_start_point(position.x,position.y);
-        }else if(get_tp_action_status() > 2){
+            if (position.status != 0)
+                set_tp_action_manage_start_point(position.x, position.y);
+        }
+        else if (get_tp_action_status() > 2)
+        {
             get_ft6336_touch_sta(&position);
-            if(position.status != 0)
-                set_tp_action_manage_stop_point(position.x,position.y);
+            if (position.status != 0)
+                set_tp_action_manage_stop_point(position.x, position.y);
         }
     }
 }
@@ -137,18 +142,21 @@ static void timer_evt_task(void *arg)
  */
 static void ui_timer_update_task(void *arg)
 {
-    while (1) {
+    while (1)
+    {
         timer_event_t evt;
         xQueueReceive(ui_update_timer_queue, &evt, portMAX_DELAY);
-        g_timer_event.timer_minute_count ++;
-        //60s 计算一次 刷新时间
-        if(g_timer_event.timer_minute_count >= 6000){
+        g_timer_event.timer_minute_count++;
+        // 60s 计算一次 刷新时间
+        if (g_timer_event.timer_minute_count >= 6000)
+        {
             g_timer_event.timer_minute_count = 0;
             ds_ui_timepage_updatetime();
         }
-        g_timer_event.timer_second_count ++;
-        //1s计算一次 
-        if(g_timer_event.timer_second_count >= 100){
+        g_timer_event.timer_second_count++;
+        // 1s计算一次
+        if (g_timer_event.timer_second_count >= 100)
+        {
             g_timer_event.timer_second_count = 0;
             ds_ui_tomatopage_updatetime();
         }
@@ -169,4 +177,3 @@ void ds_timer_init(void)
     xTaskCreate(timer_evt_task, "timer_evt_task", 2048, NULL, 5, NULL);
     xTaskCreate(ui_timer_update_task, "ui_timer_update_task", 2048, NULL, 5, NULL);
 }
-

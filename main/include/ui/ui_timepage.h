@@ -14,7 +14,6 @@
 #include "driver/periph_ctrl.h"
 #include "esp_log.h"
 
-
 void ds_ui_timepage_updatetime(void);
 void ds_ui_timepage_show_time(uint8_t type);
 void ds_ui_timepage_show_time_init();

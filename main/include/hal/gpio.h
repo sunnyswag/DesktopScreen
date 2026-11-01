@@ -12,4 +12,3 @@ int ds_gpio_get_screen_busy(void);
 void ds_gpio_set_touch_rst(uint32_t level);
 
 #endif
-

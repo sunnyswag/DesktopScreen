@@ -14,14 +14,15 @@
 #include "driver/periph_ctrl.h"
 #include "esp_log.h"
 
-typedef enum{
+typedef enum
+{
     VALUE_CITY = 0,
     VALUE_WEATHER,
     VALUE_CODE,
     VALUE_TEMP,
-}VALUE_TYPE_T;
+} VALUE_TYPE_T;
 
-void ds_ui_weather_set(VALUE_TYPE_T type,char *value);
+void ds_ui_weather_set(VALUE_TYPE_T type, char *value);
 void ds_ui_weather_init();
 void ds_ui_weather_show(uint8_t type);
 

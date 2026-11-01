@@ -39,76 +39,89 @@ static void commit_nvs_config(nvs_handle_t handle)
     nvs_close(handle);
 }
 
-void ds_nvs_save_wifi_info(char * p_ssid,char *p_psw){
-    set_system_data_wifi_info(p_ssid,p_psw);
+void ds_nvs_save_wifi_info(char *p_ssid, char *p_psw)
+{
+    set_system_data_wifi_info(p_ssid, p_psw);
     esp_err_t err;
     nvs_handle_t nvs_handle;
     err = open_nvs_config("wificonfig", &nvs_handle);
-    if (err != ESP_OK) {
-        return ;
+    if (err != ESP_OK)
+    {
+        return;
     }
     wifi_config_flag = NVS_WIFI_INFO_HAS_SAVE;
     ESP_ERROR_CHECK(nvs_set_u8(nvs_handle, "wifi_flag", (uint8_t)wifi_config_flag));
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", get_system_data().setting_ssid));
-    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "psw",  get_system_data().setting_psw));
+    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "psw", get_system_data().setting_psw));
     commit_nvs_config(nvs_handle);
 }
 
-NVS_WIFI_INFO_E ds_nvs_read_wifi_info(){
+NVS_WIFI_INFO_E ds_nvs_read_wifi_info()
+{
     esp_err_t err;
     nvs_handle_t nvs_handle;
     err = open_nvs_config("wificonfig", &nvs_handle);
-    if (err != ESP_OK) {
+    if (err != ESP_OK)
+    {
         return NVS_WIFI_INFO_ERROR;
     }
     uint8_t flag;
     err = nvs_get_u8(nvs_handle, "wifi_flag", &flag);
-    if (err != ESP_OK) {
-        ESP_LOGI(TAG,"WiFi info key null");
+    if (err != ESP_OK)
+    {
+        ESP_LOGI(TAG, "WiFi info key null");
         nvs_close(nvs_handle);
         return NVS_WIFI_INFO_NULL;
     }
     wifi_config_flag = flag;
-    if(wifi_config_flag == NVS_WIFI_INFO_HAS_SAVE){
-        ESP_LOGI(TAG,"has WiFi config info");
+    if (wifi_config_flag == NVS_WIFI_INFO_HAS_SAVE)
+    {
+        ESP_LOGI(TAG, "has WiFi config info");
         char ssid[32];
         char psw[64];
         size_t ssid_len = sizeof(ssid);
         size_t psw_len = sizeof(psw);
         ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_len));
         ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "psw", psw, &psw_len));
-        set_system_data_wifi_info(ssid,psw);
+        set_system_data_wifi_info(ssid, psw);
         print_system_data_wifi_info();
-    }else{
-        ESP_LOGI(TAG,"WiFi info null");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "WiFi info null");
     }
     nvs_close(nvs_handle);
     return wifi_config_flag;
 }
 
-
-void ds_nvs_save_city(char * city){
+void ds_nvs_save_city(char *city)
+{
     esp_err_t err;
     nvs_handle_t nvs_handle;
     err = open_nvs_config("cityconfig", &nvs_handle);
-    if (err != ESP_OK) {
-        return ;
+    if (err != ESP_OK)
+    {
+        return;
     }
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "city", city));
     commit_nvs_config(nvs_handle);
 }
 
-char * ds_nvs_read_city(){
+char *ds_nvs_read_city()
+{
     esp_err_t err;
     nvs_handle_t nvs_handle;
     err = open_nvs_config("cityconfig", &nvs_handle);
-    if (err != ESP_OK) {
+    if (err != ESP_OK)
+    {
         return NULL;
     }
     size_t city_len;
-    if ( (err = nvs_get_str(nvs_handle,  "city", NULL, &city_len)) == ESP_OK) {
+    if ((err = nvs_get_str(nvs_handle, "city", NULL, &city_len)) == ESP_OK)
+    {
         char *city = (char *)malloc(city_len);
-        if ( (err = nvs_get_str(nvs_handle, "city", city, &city_len)) == ESP_OK) {
+        if ((err = nvs_get_str(nvs_handle, "city", city, &city_len)) == ESP_OK)
+        {
             printf("city = %s\n", city);
             nvs_close(nvs_handle);
             return city;
@@ -118,12 +131,14 @@ char * ds_nvs_read_city(){
     return NULL;
 }
 
-void ds_nvs_save_tomato_time(uint8_t worktime,uint8_t resettime,uint8_t roundtimes){
+void ds_nvs_save_tomato_time(uint8_t worktime, uint8_t resettime, uint8_t roundtimes)
+{
     esp_err_t err;
     nvs_handle_t nvs_handle;
     err = open_nvs_config("tomatoconfig", &nvs_handle);
-    if (err != ESP_OK) {
-        return ;
+    if (err != ESP_OK)
+    {
+        return;
     }
     ESP_ERROR_CHECK(nvs_set_u8(nvs_handle, "worktime", worktime));
     ESP_ERROR_CHECK(nvs_set_u8(nvs_handle, "resettime", resettime));
@@ -131,20 +146,22 @@ void ds_nvs_save_tomato_time(uint8_t worktime,uint8_t resettime,uint8_t roundtim
     commit_nvs_config(nvs_handle);
 }
 
-void ds_nvs_read_tomato_time(uint8_t *worktime,uint8_t *resettime,uint8_t *roundtimes){
+void ds_nvs_read_tomato_time(uint8_t *worktime, uint8_t *resettime, uint8_t *roundtimes)
+{
     esp_err_t err;
     nvs_handle_t nvs_handle;
     *worktime = 20;
     *resettime = 5;
     *roundtimes = 3;
     err = open_nvs_config("tomatoconfig", &nvs_handle);
-    if (err != ESP_OK) {
+    if (err != ESP_OK)
+    {
         return;
     }
     err = nvs_get_u8(nvs_handle, "worktime", worktime);
     err = nvs_get_u8(nvs_handle, "resettime", resettime);
     err = nvs_get_u8(nvs_handle, "roundtimes", roundtimes);
-    printf("tomato time = %d %d %d\n",*worktime,*resettime,*roundtimes);
+    printf("tomato time = %d %d %d\n", *worktime, *resettime, *roundtimes);
     nvs_close(nvs_handle);
     return;
 }

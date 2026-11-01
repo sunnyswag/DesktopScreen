@@ -4,4 +4,3 @@
 void ds_timer_init(void);
 
 #endif
-

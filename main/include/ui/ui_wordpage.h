@@ -4,5 +4,4 @@
 void ds_ui_wordpage_show(uint8_t num);
 void ds_ui_wordpage_init();
 
-
 #endif

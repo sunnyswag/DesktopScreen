@@ -38,7 +38,8 @@ void get_system_time()
     strftime(str, sizeof(str), "%c", &timeinfo);
     ESP_LOGI(TAG, "time updated: %s", str);
 
-    ESP_LOGI(TAG, "%d%d:%d%d", timeinfo.tm_hour / 10, timeinfo.tm_hour % 10, timeinfo.tm_min / 10, timeinfo.tm_min % 10);
+    ESP_LOGI(TAG, "%d%d:%d%d", timeinfo.tm_hour / 10, timeinfo.tm_hour % 10, timeinfo.tm_min / 10,
+             timeinfo.tm_min % 10);
     ESP_LOGI(TAG, "%d-%d-%d", timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday);
 
     update_system_time(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
@@ -63,7 +64,9 @@ void initialize_sntp(void)
         esp_sntp_set_time_sync_notification_cb(time_sync_notification_cb);
         esp_sntp_init();
         sntp_1st_init = false;
-    }else{
+    }
+    else
+    {
         ESP_LOGI(TAG, "Syncing System Time");
         esp_sntp_stop();
         esp_sntp_init();
