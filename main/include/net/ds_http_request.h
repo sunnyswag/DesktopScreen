@@ -5,7 +5,6 @@
 typedef enum{
     HTTP_GET_TIME =0,
     HTTP_GET_WEATHER,
-    HTTP_GET_FANS,
     HTTP_GET_CITY,
 }HTTP_REQUEST_TYPE_E;
 
