@@ -61,14 +61,10 @@ void ds_ui_weather_show(uint8_t type){
     g_weather_page.updateing = 1;
 	int vertical = 80 +offset_v; //垂直位置
     int horizontal = 30 + offset_h;  //水平位置
-    uint8_t *m_custom_image;
-    if ((m_custom_image = (uint8_t *)malloc(IMAGE_SIZE)) == NULL) {
-      printf("Failed to apply for black memory...\r\n");
+    uint8_t *m_custom_image = ds_paint_create_image(EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT);
+    if (m_custom_image == NULL) {
       return;
     }
-    Paint_NewImage(m_custom_image, EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT, 0, WHITE);
-    Paint_SelectImage(m_custom_image);
-    Paint_Clear(WHITE);
 
     Paint_DrawString_piture(0,0,gImage_back,icon_back_len,36, WHITE, BLACK);
 

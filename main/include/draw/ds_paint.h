@@ -81,6 +81,8 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString,
                         UWORD Color_Foreground, UWORD Color_Background);
 void Paint_DrawString_piture(UWORD Xstart, UWORD Ystart,const unsigned char *pbuf ,int plen,int pxsize,
                         UWORD Color_Foreground, UWORD Color_Background);
+// The caller owns the selected image and must free it after drawing.
+uint8_t *ds_paint_create_image(uint16_t width, uint16_t height);
 void ds_paint_image_new(void);
 void ds_paint_image_copy(void);
 #endif

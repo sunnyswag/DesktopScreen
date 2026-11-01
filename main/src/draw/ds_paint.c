@@ -4,6 +4,21 @@
 
 PAINT Paint;
 
+uint8_t *ds_paint_create_image(uint16_t width, uint16_t height)
+{
+    size_t size = ((width + 7) / 8) * height;
+    uint8_t *image = malloc(size);
+    if (image == NULL)
+    {
+        printf("Failed to apply for black memory...\r\n");
+        return NULL;
+    }
+    Paint_NewImage(image, width, height, 0, WHITE);
+    Paint_SelectImage(image);
+    Paint_Clear(WHITE);
+    return image;
+}
+
 ROTATE_IMAGE Epd_Rotate = ROTATE_90;
 
 uint8_t UTF8toUnicode(uint8_t *ch, uint16_t *_unicode)
@@ -352,9 +367,9 @@ unsigned char gImage_last_page[5000];
 
 void ds_paint_image_new(){
     unsigned int i;
-    spi_send_cmd(0x24); 
+    spi_send_byte(0x24, SPI_BYTE_COMMAND); 
     for(i=0;i<5000;i++){
-		spi_send_data(Paint._Image[i]);  
+        spi_send_byte(Paint._Image[i], SPI_BYTE_DATA);  
 	}  	 	
 }
 

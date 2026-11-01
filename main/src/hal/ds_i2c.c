@@ -17,19 +17,25 @@
 #include "sdkconfig.h"
 #include "ds_i2c.h"
 
+static esp_err_t execute_i2c_command(i2c_cmd_handle_t cmd, const char *error_message)
+{
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+    if (ret != ESP_OK)
+    {
+        printf("%s\n", error_message);
+    }
+    return ret;
+}
+
 //设置读取地址
 static esp_err_t i2c_master_set_addr(uint8_t u8Cmd){
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | WRITE_BIT, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, u8Cmd, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-        printf("i2c_master_set_addr error !! check tp is connect ?\n");
-    }
-    return ret;
+    return execute_i2c_command(cmd, "i2c_master_set_addr error !! check tp is connect ?");
 }
 
 //读取数据
@@ -49,13 +55,7 @@ esp_err_t i2c_master_read_slave(uint8_t u8Cmd, uint8_t *data_rd, size_t size)
 	}
 	i2c_master_read_byte(cmd, data_rd+size-1, NACK_VAL);
 
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-        printf("i2c_master_read_slave error !! check tp is connect ?\n");
-    }
-    return ret;
+    return execute_i2c_command(cmd, "i2c_master_read_slave error !! check tp is connect ?");
 }
 
 //写入数据
@@ -67,14 +67,7 @@ esp_err_t i2c_master_write_slave(uint8_t u8Cmd, uint8_t *data_wr, size_t size)
     i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | WRITE_BIT, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, u8Cmd, ACK_CHECK_EN);
     i2c_master_write(cmd, data_wr, size, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-
-    esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-        printf("i2c_master_write_slave error\n");
-    }
-    return ret;
+    return execute_i2c_command(cmd, "i2c_master_write_slave error");
 }
 
 /**

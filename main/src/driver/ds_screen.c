@@ -40,39 +40,39 @@ static void init_display(){
 	ds_gpio_set_screen_rst(1);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 
-	lcd_chkstatus();   
-	spi_send_cmd(0x12);  //SWRESET
-	lcd_chkstatus();   
-		
-	spi_send_cmd(0x01); //Driver output control      
-	spi_send_data(0xC7);
-	spi_send_data(0x00);
-	spi_send_data(0x01);
+	lcd_chkstatus();
+    spi_send_byte(0x12, SPI_BYTE_COMMAND);  //SWRESET
+	lcd_chkstatus();
 
-	spi_send_cmd(0x11); //data entry mode       
-	spi_send_data(0x01);
+    spi_send_byte(0x01, SPI_BYTE_COMMAND); //Driver output control      
+    spi_send_byte(0xC7, SPI_BYTE_DATA);
+    spi_send_byte(0x00, SPI_BYTE_DATA);
+    spi_send_byte(0x01, SPI_BYTE_DATA);
 
-	spi_send_cmd(0x44); //set Ram-X address start/end position   
-	spi_send_data(0x00);
-	spi_send_data(0x18);    //0x0C-->(18+1)*8=200
+    spi_send_byte(0x11, SPI_BYTE_COMMAND); //data entry mode       
+    spi_send_byte(0x01, SPI_BYTE_DATA);
 
-	spi_send_cmd(0x45); //set Ram-Y address start/end position          
-	spi_send_data(0xC7);    //0xC7-->(199+1)=200
-	spi_send_data(0x00);
-	spi_send_data(0x00);
-	spi_send_data(0x00); 
+    spi_send_byte(0x44, SPI_BYTE_COMMAND); //set Ram-X address start/end position   
+    spi_send_byte(0x00, SPI_BYTE_DATA);
+    spi_send_byte(0x18, SPI_BYTE_DATA);    //0x0C-->(18+1)*8=200
 
-	spi_send_cmd(0x3C); //BorderWavefrom
-	spi_send_data(0x05);	
-	  	
-  	spi_send_cmd(0x18); //Read built-in temperature sensor
-	spi_send_data(0x80);	
+    spi_send_byte(0x45, SPI_BYTE_COMMAND); //set Ram-Y address start/end position          
+    spi_send_byte(0xC7, SPI_BYTE_DATA);    //0xC7-->(199+1)=200
+    spi_send_byte(0x00, SPI_BYTE_DATA);
+    spi_send_byte(0x00, SPI_BYTE_DATA);
+    spi_send_byte(0x00, SPI_BYTE_DATA);
 
-	spi_send_cmd(0x4E);   // set RAM x address count to 0;
-	spi_send_data(0x00);
-	spi_send_cmd(0x4F);   // set RAM y address count to 0X199;    
-	spi_send_data(0xC7);
-	spi_send_data(0x00);
+    spi_send_byte(0x3C, SPI_BYTE_COMMAND); //BorderWavefrom
+    spi_send_byte(0x05, SPI_BYTE_DATA);
+
+    spi_send_byte(0x18, SPI_BYTE_COMMAND); //Read built-in temperature sensor
+    spi_send_byte(0x80, SPI_BYTE_DATA);
+
+    spi_send_byte(0x4E, SPI_BYTE_COMMAND);   // set RAM x address count to 0;
+    spi_send_byte(0x00, SPI_BYTE_DATA);
+    spi_send_byte(0x4F, SPI_BYTE_COMMAND);   // set RAM y address count to 0X199;    
+    spi_send_byte(0xC7, SPI_BYTE_DATA);
+    spi_send_byte(0x00, SPI_BYTE_DATA);
 
 
 	vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -82,39 +82,30 @@ static void init_display(){
 /////////////////////////////Enter deep sleep mode////////////////////////
 void deep_sleep(void) //Enter deep sleep mode
 {
-	spi_send_cmd(0x10); //enter deep sleep
-	spi_send_data(0x01); 
+    spi_send_byte(0x10, SPI_BYTE_COMMAND); //enter deep sleep
+    spi_send_byte(0x01, SPI_BYTE_DATA); 
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 }
 
-void refresh(void)
+void ds_screen_refresh(DS_SCREEN_REFRESH_MODE_E mode)
 {
-	spi_send_cmd(0x22); //Display Update Control
-  	spi_send_data(0xF7);   
-  	spi_send_cmd(0x20); //Activate Display Update Sequence
-  	lcd_chkstatus();   
-}
-
-void refresh_part(void)
-{
-	spi_send_cmd(0x22); //Display Update Control
-  	spi_send_data(0xFF);   
-  	spi_send_cmd(0x20); //Activate Display Update Sequence
+    spi_send_byte(0x22, SPI_BYTE_COMMAND); //Display Update Control
+    spi_send_byte(mode, SPI_BYTE_DATA);
+    spi_send_byte(0x20, SPI_BYTE_COMMAND); //Activate Display Update Sequence
   	lcd_chkstatus();   
 }
 
 
 //图片全刷-全白函数
 
+static
+void write_screen_ram(uint8_t command,const uint8_t *data){
 
-//图片全刷-数据函数
-void ds_screen_full_display_data(const uint8_t *data){
-
-	unsigned int i;	
-  	spi_send_cmd(0x24);   //write RAM for black(0)/white (1)
+	unsigned int i;
+    spi_send_byte(command, SPI_BYTE_COMMAND);
 	for(i=0;i<5000;i++)
-	{               
-		spi_send_data(*data);
+	{
+        spi_send_byte(*data, SPI_BYTE_DATA);
 		data++;
 	}
 }
@@ -123,15 +114,15 @@ void ds_screen_full_display_data(const uint8_t *data){
 void ds_screen_full_display(void pic_display(void)){
 	init_display();
 	pic_display(); 				//picture
-	refresh();														//EPD_refresh		
+    ds_screen_refresh(DS_SCREEN_REFRESH_FULL);
 	deep_sleep();
 }
 
 //全刷 带数据
-void ds_screen_full_display_bydata(void display_func(const uint8_t *data),const uint8_t *data){
+void ds_screen_full_display_bydata(const uint8_t *data){
 	init_display();
-	display_func(data); 				//picture
-	refresh();														//EPD_refresh		
+    write_screen_ram(0x24,data);
+    ds_screen_refresh(DS_SCREEN_REFRESH_FULL);
 	deep_sleep();	
 }
 
@@ -168,25 +159,25 @@ void ds_screen_partial_display_bydata(unsigned int x_start,unsigned int y_start,
 	ds_gpio_set_screen_rst(1);
 	vTaskDelay(10 / portTICK_PERIOD_MS);
 	//Lock the border to prevent flashing
-	spi_send_cmd(0x3C); //BorderWavefrom,
-	spi_send_data(0x80);	
-	
-	spi_send_cmd(0x44);       // set RAM x address start/end, in page 35
-	spi_send_data(x_start);    // RAM x address start at 00h;
-	spi_send_data(x_end);    // RAM x address end at 0fh(15+1)*8->128 
-	spi_send_cmd(0x45);       // set RAM y address start/end, in page 35
-	spi_send_data(y_start2);    // RAM y address start at 0127h;
-	spi_send_data(y_start1);    // RAM y address start at 0127h;
-	spi_send_data(y_end2);    // RAM y address end at 00h;
-	spi_send_data(y_end1);    // ????=0	
+    spi_send_byte(0x3C, SPI_BYTE_COMMAND); //BorderWavefrom,
+    spi_send_byte(0x80, SPI_BYTE_DATA);
 
-	spi_send_cmd(0x4E);   // set RAM x address count to 0;
-	spi_send_data(x_start); 
-	spi_send_cmd(0x4F);   // set RAM y address count to 0X127;    
-	spi_send_data(y_start2);
-	spi_send_data(y_start1);
-	
-	spi_send_cmd(0x24);   //Write Black and White image to RAM
+    spi_send_byte(0x44, SPI_BYTE_COMMAND);       // set RAM x address start/end, in page 35
+    spi_send_byte(x_start, SPI_BYTE_DATA);    // RAM x address start at 00h;
+    spi_send_byte(x_end, SPI_BYTE_DATA);    // RAM x address end at 0fh(15+1)*8->128 
+    spi_send_byte(0x45, SPI_BYTE_COMMAND);       // set RAM y address start/end, in page 35
+    spi_send_byte(y_start2, SPI_BYTE_DATA);    // RAM y address start at 0127h;
+    spi_send_byte(y_start1, SPI_BYTE_DATA);    // RAM y address start at 0127h;
+    spi_send_byte(y_end2, SPI_BYTE_DATA);    // RAM y address end at 00h;
+    spi_send_byte(y_end1, SPI_BYTE_DATA);    // ????=0	
+
+    spi_send_byte(0x4E, SPI_BYTE_COMMAND);   // set RAM x address count to 0;
+    spi_send_byte(x_start, SPI_BYTE_DATA);
+    spi_send_byte(0x4F, SPI_BYTE_COMMAND);   // set RAM y address count to 0X127;    
+    spi_send_byte(y_start2, SPI_BYTE_DATA);
+    spi_send_byte(y_start1, SPI_BYTE_DATA);
+
+    spi_send_byte(0x24, SPI_BYTE_COMMAND);   //Write Black and White image to RAM
 	partial_new(new_data);
 
 
@@ -226,15 +217,8 @@ void ds_screen_partial_data_add(unsigned int x_start,unsigned int x_end,unsigned
 
 //图片全刷-全白函数
 static void ds_screen_display_data(void){
-	unsigned int i;
-	spi_send_cmd(0x24);
-	for(i=0;i<5000;i++){
-		spi_send_data(partial_data_array[i]);  
-	}  	 
-	spi_send_cmd(0x26);
-	for(i=0;i<5000;i++){
-		spi_send_data(partial_data_array[i]);  
-	}  	 		
+    write_screen_ram(0x24, partial_data_array);
+    write_screen_ram(0x26,partial_data_array);  	 		
 }
 
 //局刷数据-复制
@@ -259,9 +243,8 @@ void init_screen_interface(){
 
 //初始化
 
-
-
-/*When the electronic paper screen is updated, do not unplug the electronic paper to avoid damage to the screen*/
+/*When the electronic paper screen is updated, do not unplug the electronic paper to avoid damage to
+ * the screen*/
 
 //SSD1681
 

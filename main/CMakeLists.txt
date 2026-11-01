@@ -23,6 +23,7 @@ idf_component_register(
                                 "src/hal/ds_pwm.c"
 
                                 "src/ui/ds_ui_timepage.c"
+                                "src/ui/ds_ui_clock.c"
                                 "src/ui/ds_ui_page_manage.c"
                                 "src/ui/ds_ui_mainpage.c"
                                 "src/ui/ds_ui_weatherpage.c"

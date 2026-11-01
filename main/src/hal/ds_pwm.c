@@ -31,35 +31,31 @@ static void ds_beep_stop(){
     mcpwm_set_signal_low(MCPWM_UNIT_1, MCPWM_TIMER_1, MCPWM_GEN_A);
 }
 
+static void play_beep_pulses(unsigned int count)
+{
+    for (unsigned int i = 0; i < count; ++i)
+    {
+        if (i > 0)
+        {
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
+        ds_beep_start();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        ds_beep_stop();
+    }
+}
+
 static void beep_task(void* arg)
 {
     uint32_t evt;
     for(;;) {
         if(xQueueReceive(beep_queue, &evt, portMAX_DELAY)) {
             if(evt == BEEP_SHORT_100MS){
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
+                play_beep_pulses(1);
             }else if(evt == BEEP_SHORT_500MS){
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
+                play_beep_pulses(2);
             }else if(evt == BEEP_LONG){
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_start();
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                ds_beep_stop();
+                play_beep_pulses(3);
             }
         }
     }

@@ -7,6 +7,7 @@
 
 #include "ds_screen.h"
 #include "ds_spi.h"
+#include "ds_ui_clock.h"
 #include "ds_ui_page_manage.h"
 #include "ds_ui_timepage.h"
 #include "ds_system_data.h"
@@ -34,13 +35,6 @@ static int offset_h = 24;
 
 TIME_PAGE_T g_time_page;
 
-static void ds_ui_timepage_num_set(const uint8_t *data){
-	unsigned int i;
-	for(i=0;i<192;i++){	
-		spi_send_data(~data[i]);
-	}
-}
-
 
 void ds_ui_timepage_show_time_init(){
     g_time_page.hour = get_system_data().hour;
@@ -54,21 +48,7 @@ void ds_ui_timepage_show_time_init(){
 
     ds_screen_partial_data_init();
 
-    //小时 十位
-    now_index = g_time_page.hour / 10;
-    ds_screen_partial_data_add(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    //小时 个位
-    now_index = g_time_page.hour % 10;
-    ds_screen_partial_data_add(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    //首次刷新才显示 :号
-    ds_screen_partial_data_add(horizontal+num_size*2,horizontal+num_size*2+8,vertical,vertical+num_size_y,gImage_time_symbol);
-
-    //分钟 十位
-    now_index = g_time_page.minute / 10;
-    ds_screen_partial_data_add(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    // //分钟 个位
-    now_index = g_time_page.minute % 10;
-    ds_screen_partial_data_add(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
+    ds_ui_clock_add_time(horizontal, vertical, g_time_page.hour, g_time_page.minute);
 
     //返回
     //size 36*36
@@ -130,26 +110,7 @@ void ds_ui_timepage_show_time_init(){
 void ds_ui_timepage_show_time(uint8_t type){
     g_time_page.updateing = 1;
     g_time_page.init_status = type;
-    int num_size = 32;
-    int num_size_y = 48;
-	int vertical = 35 + offset_v; //垂直位置
-    int horizontal = 8 + offset_h;  //水平位置
-    int last_index,now_index;
-
-    //小时 十位
-    now_index = g_time_page.hour / 10;
-    ds_screen_partial_display_bydata(horizontal+0,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    // //小时 个位
-    now_index = g_time_page.hour % 10;
-    ds_screen_partial_display_bydata(horizontal+num_size,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    //分钟 十位 10 *8 = 80  14*8 112
-    now_index = g_time_page.minute / 10;
-    ds_screen_partial_display_bydata(horizontal+num_size*2+8,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    // //分钟 个位
-    now_index = g_time_page.minute % 10;
-    ds_screen_partial_display_bydata(horizontal+num_size*3+8,vertical,ds_ui_timepage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    refresh_part();
-	deep_sleep();
+    ds_ui_clock_update_time(8 + offset_h, 35 + offset_v, g_time_page.hour, g_time_page.minute);
     g_time_page.hour_last = g_time_page.hour;
     g_time_page.minute_last = g_time_page.minute;
     g_time_page.init_status = 1;

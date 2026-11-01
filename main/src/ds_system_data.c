@@ -265,14 +265,7 @@ void update_system_time(uint8_t hour,uint8_t minute,uint8_t second){
 void update_system_time_second(){
     if(g_system_data.second >= 59){
         g_system_data.second = 0;
-        if(g_system_data.minute >= 59){
-            g_system_data.minute = 0;
-            if(g_system_data.hour >= 23){
-                g_system_data.hour = 0;
-            }else
-                g_system_data.hour ++;
-        }else
-            g_system_data.minute ++;
+        update_system_time_minute();
     }else{
         g_system_data.second ++;
     }

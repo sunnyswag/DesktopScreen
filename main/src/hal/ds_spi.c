@@ -18,6 +18,8 @@
 #include "ds_gpio.h"
 
 
+#include "ds_spi.h"
+
 #define DMA_CHAN    2
 
 
@@ -26,38 +28,23 @@
 #define PIN_NUM_CLK  25
 #define PIN_NUM_CS   27
 
-//To speed up transfers, every SPI transfer sends a bunch of lines. This define specifies how many. More means more memory use,
-//but less overhead for setting up / finishing transfers. Make sure 240 is dividable by this.
+// To speed up transfers, every SPI transfer sends a bunch of lines. This define specifies how many.
+// More means more memory use, but less overhead for setting up / finishing transfers. Make sure 240
+// is dividable by this.
 #define PARALLEL_LINES 16
 
 spi_device_handle_t spi;
 
-void spi_send_cmd(const uint8_t cmd)
+void spi_send_byte( uint8_t value, SPI_BYTE_TYPE_E type)
 {
     esp_err_t ret;
     spi_transaction_t t;
-    ds_gpio_set_screen_dc(0);
+    ds_gpio_set_screen_dc(type);
     ds_gpio_set_screen_cs(0);
     memset(&t, 0, sizeof(t));       //Zero out the transaction
-    // t.flags=SPI_TRANS_USE_TXDATA;
-    t.length=8;                     //Command is 8 bits
-    t.tx_buffer=&cmd;               //The data is the cmd itself
-    t.user=(void*)0;                //D/C needs to be set to 0
-    ret=spi_device_polling_transmit(spi, &t);  //Transmit!
-    ds_gpio_set_screen_cs(1);
-    assert(ret==ESP_OK);            //Should have had no issues.
-}
-
-void spi_send_data(const uint8_t data)
-{
-    esp_err_t ret;
-    spi_transaction_t t;
-    ds_gpio_set_screen_dc(1);
-    ds_gpio_set_screen_cs(0);
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length=8;                 //Len is in bytes, transaction length is in bits.
-    t.tx_buffer=&data;               //Data
-    t.user=(void*)1;                //D/C needs to be set to 1
+    t.length=8;             // Command is 8 bits
+    t.tx_buffer=&value;
+    t.user=(void*)(uintptr_t)type;
     ret=spi_device_polling_transmit(spi, &t);  //Transmit!
     ds_gpio_set_screen_cs(1);
     assert(ret==ESP_OK);            //Should have had no issues.

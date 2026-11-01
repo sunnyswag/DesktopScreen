@@ -49,16 +49,11 @@ WORD_ARRAY_T word_array;
 
 void ds_ui_wordpage_show(uint8_t type){
     g_word_page.updateing = 1;
-
-    uint8_t *m_custom_image;
     printf("IMAGE_SIZE %d\n",IMAGE_SIZE);
-    if ((m_custom_image = (uint8_t *)malloc(IMAGE_SIZE)) == NULL) {
-      printf("Failed to apply for black memory...\r\n");
+    uint8_t *m_custom_image = ds_paint_create_image(EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT);
+    if (m_custom_image == NULL) {
       return ;
     }
-    Paint_NewImage(m_custom_image, EPD_2IN9BC_WIDTH, EPD_2IN9BC_HEIGHT, 0, WHITE);
-    Paint_SelectImage(m_custom_image);
-    Paint_Clear(WHITE);
 
     Paint_DrawString_piture(0,0,gImage_back,icon_back_len,36, WHITE, BLACK);
 

@@ -8,6 +8,7 @@
 
 #include "ds_screen.h"
 #include "ds_spi.h"
+#include "ds_ui_clock.h"
 #include "ds_ui_page_manage.h"
 #include "ds_data_icon.h"
 #include "ds_ui_tomatopage.h"
@@ -70,37 +71,11 @@ typedef struct
 
 TOMATO_PAGE_T g_tomato_page;
 
-static void ds_ui_tomatopage_num_set(const uint8_t *data){
-	unsigned int i;
-	for(i=0;i<192;i++){	
-		spi_send_data(~data[i]);
-	}
-}
-
-
 static void ds_ui_tomatopage_update(){
     if(g_tomato_page.is_updateing)
         return ;
     g_tomato_page.is_updateing = true;
-    int num_size = 32;
-    int num_size_y = 48;
-	int vertical = 35+offset_v; //垂直位置
-    int horizontal = 8 + offset_h;  //水平位置
-    int last_index,now_index;
-    //小时 十位
-    now_index = g_tomato_page.hour / 10;
-    ds_screen_partial_display_bydata(horizontal+0,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    // //小时 个位
-    now_index = g_tomato_page.hour % 10;
-    ds_screen_partial_display_bydata(horizontal+num_size,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    //分钟 十位 10 *8 = 80  14*8 112
-    now_index = g_tomato_page.minute / 10;
-    ds_screen_partial_display_bydata(horizontal+num_size*2+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    // //分钟 个位
-    now_index = g_tomato_page.minute % 10;
-    ds_screen_partial_display_bydata(horizontal+num_size*3+8,vertical,ds_ui_tomatopage_num_set,gImage_num_size48[now_index],num_size_y,num_size);
-    refresh_part();
-	deep_sleep();
+    ds_ui_clock_update_time(8 + offset_h, 35+offset_v, g_tomato_page.hour, g_tomato_page.minute);
     g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
     g_tomato_page.is_updateing = false;
@@ -112,25 +87,11 @@ void ds_ui_tomatopage_show_init(){
     int num_size_y = 48;
 	int vertical = 35 + offset_v; //垂直位置
     int horizontal = 8 + offset_h;  //水平位置
-    int now_index;
     g_tomato_page.hour_last = g_tomato_page.hour;
     g_tomato_page.minute_last = g_tomato_page.minute;
     
     ds_screen_partial_data_init();
-    //小时 十位
-    now_index = g_tomato_page.hour / 10;
-    ds_screen_partial_data_add(horizontal+0,horizontal+num_size,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    //小时 个位
-    now_index = g_tomato_page.hour % 10;
-    ds_screen_partial_data_add(horizontal+num_size,horizontal+num_size*2,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    //首次刷新才显示 :号
-    ds_screen_partial_data_add(horizontal+num_size*2,horizontal+num_size*2+8,vertical,vertical+num_size_y,gImage_time_symbol);
-    //分钟 十位
-    now_index = g_tomato_page.minute / 10;
-    ds_screen_partial_data_add(horizontal+num_size*2+8,horizontal+num_size*3+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
-    // //分钟 个位
-    now_index = g_tomato_page.minute % 10;
-    ds_screen_partial_data_add(horizontal+num_size*3+8,horizontal+num_size*4+8,vertical,vertical+num_size_y,gImage_num_size48[now_index]);
+    ds_ui_clock_add_time(horizontal, vertical, g_tomato_page.hour, g_tomato_page.minute);
 
     //图标
     num_size = 56;
