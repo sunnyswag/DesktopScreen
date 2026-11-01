@@ -203,7 +203,7 @@
 - **触摸**：pal 只上报按下、抬起和坐标，手势识别放在 core。Zephyr 的 FT5336 驱动只在单边沿触发中断，经 input 回调上报，不能照搬原项目的双沿中断逻辑。
 - **JSON**：天气解析属于业务逻辑，放 core；cJSON 作为第三方源码放进 `core/third_party/`，三个平台共用同一份，不依赖各平台自带的版本。
 - **时间**：core 自己处理 +8 时区。Zephyr 默认的 minimal libc 不支持 TZ，NuttX 也说好不启用 zoneinfo。
-- **线程与队列**：core 不直接调用任何 OS API，只提供"处理事件 / 定时 tick"两个入口；线程、队列、定时器都由各 port 实现。
+- **线程与队列**：见第 6 节，core 可以直接用一个 POSIX 子集，Zephyr 端要打开 `CONFIG_POSIX_API`。
 
 ### 环境上要注意
 
@@ -221,3 +221,46 @@
 | Z2 | 板级 overlay：SPI2/I2C1/GPIO 引脚、ssd1681（带 full/partial 节点）、ft5336、LEDC 蜂鸣器、Flash 分区（含字库区）；Settings + NVS | 上板 UI 正常，时钟页局刷不闪，配置重启后还在 |
 | Z3 | 网络：参考 apsta_mode 示例做配网，HTTP 服务器提供 4 个 POST 接口，HTTP 客户端拉天气，SNTP 校时 | 和 NuttX 阶段 E 的验收一样 |
 | Z4（可选） | light sleep：RTC 定时唤醒 + GPIO4 唤醒（要实测）；处理 FT5336 自身休眠和 WiFi PM 阻止睡眠的问题 | 空闲时进入浅睡，触摸能唤醒 |
+
+## 6. 提速：可借鉴的开源项目和做法（依据 survey-references.md）
+
+**结论：没有现成的"同一份应用跑在 ESP-IDF/NuttX/Zephyr 上"的墨水屏项目可以照搬**（NuttX 上一个都没有，Zephyr 上只有零星的 nRF52 小项目）。能提速的是下面三件事。
+
+### 6.1 core 直接用 POSIX 子集，pal 只管 POSIX 管不到的部分（最大的提速）
+
+三个系统都支持这些 POSIX 接口（ESP-IDF 5.4.1 和 Zephyr 4.5.0 已对照本地源码核实，NuttX 是原生 POSIX）：
+
+| 允许 core 使用的 | ESP-IDF | Zephyr（`CONFIG_POSIX_API`） | NuttX |
+|---|:-:|:-:|:-:|
+| `pthread`、mutex、cond | ✓ | ✓ | ✓ |
+| BSD socket + `select`/`poll` | ✓ | ✓ | ✓ |
+| `clock_gettime`、`nanosleep` | ✓ | ✓ | ✓ |
+| `mqueue` | ✓（`components/rt`） | ✓ | ✓ |
+| `settimeofday` | ✓ | **✗（没有实现）** | ✓ |
+
+所以：
+- **网络放进 core，只写一份**：HTTP GET 拉天气（原项目本来就是 HTTP，不是 HTTPS）、配网用的最小 HTTP 服务器（GET `/` + 4 个 POST）都用 socket 写。NuttX 阶段 E、Zephyr 阶段 Z3 不再需要分别对接 webclient、http_server 这些各家的组件。
+- **线程和队列也放进 core**：UI 线程、网络线程用 pthread，事件用 mqueue 或者 pipe + select。上一版"core 不调用任何 OS API"的约束放宽成"只调用这个 POSIX 子集"。
+- **pal 缩小到**：显示（全刷/局刷）、触摸、蜂鸣器、键值存储、WiFi（STA/AP 的启停、连接状态）、校时（每个平台用自带的 SNTP；Zephyr 没有 `settimeofday`，用 `clock_settime`）。
+- 读时间统一用 `clock_gettime`，+8 时区由 core 自己加。
+
+### 6.2 参考项目：照着它们的目录结构写 pal
+
+| 参考什么 | 项目 | 看哪里 | 为什么值得看 |
+|---|---|---|---|
+| pal 的整体组织 | [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime)（Apache-2.0） | `core/shared/platform/{esp-idf,nuttx,zephyr}` + `platform/include/platform_api_*.h` | 恰好覆盖这三个系统：接口头文件统一，每个系统一个目录。NuttX 目录只有 3 个文件（大部分复用 POSIX），Zephyr 有 8 个，正好说明 6.1 的做法可行 |
+| 键值存储、WiFi 配网的按平台实现 | [Matter / connectedhomeip](https://github.com/project-chip/connectedhomeip)（Apache-2.0） | `src/platform/{ESP32,Zephyr,NuttX}` 下的 `KeyValueStoreManagerImpl`、`ConfigurationManagerImpl`、NetworkCommissioning | pal 里的存储和 WiFi 接口可以照它的粒度设计；项目很大，只看这几个文件 |
+| 以后上 LVGL（阶段 G） | LVGL 9 | ESP-IDF：esp-bsp 的 `components/esp_lvgl_port`；NuttX：lvgl 上游 `src/drivers/nuttx`；Zephyr：`modules/lvgl` | 三个系统都有官方接入，v9 支持 1bpp（`LV_COLOR_FORMAT_I1`）。现在不用 |
+
+不用看的：Golioth、Memfault（没有 NuttX；Memfault 许可证有限制）、MicroPython（是整个解释器，不是 pal 参考）、wolfSSL（GPL）。
+
+### 6.3 NuttX 的局刷：从 Zephyr 的 ssd16xx.c 移植
+
+- Zephyr `drivers/display/ssd16xx.c` 和 NuttX `drivers/lcd/ssd1680.c` **都是 Apache-2.0**，可以把 Zephyr 的 partial profile 逻辑（局刷 LUT/OTP、`0x22` 控制字 `0xFF`、旧画面 RAM 维护）移植到 NuttX 驱动。改进以后还可以提交回 NuttX 上游，这在 NuttX 上还没人做过，可以作为视频的一个亮点。
+- 另一个干净的参考：[libdriver/ssd1681](https://github.com/libdriver/ssd1681)（MIT，独立完整驱动，仍在维护）。
+- **不要复制** GxEPD2（GPL-3.0）、ESPHome 的 C++ 部分（GPLv3）、EPDiy（LGPL）的代码；Waveshare 官方示例仓库没有 LICENSE，也不要复制。只看思路可以，代码自己写。
+
+### 对阶段的影响
+
+- 阶段 P 的工作量变大（网络也要在 ESP-IDF 上用 socket 重写一遍，不再用 `esp_http_client`/`esp_http_server`），但 NuttX 阶段 E 和 Zephyr 阶段 Z3 会缩成"实现 pal 的 WiFi、键值存储、校时 + 打开 POSIX 配置"。
+- NuttX 阶段 F 的局刷按 6.3 做，原来的"备选：在用户态照搬 ds_screen.c"保留作兜底。
