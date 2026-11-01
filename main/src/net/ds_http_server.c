@@ -401,21 +401,19 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static esp_err_t send_wifi_handler(httpd_req_t *req)
+static esp_err_t receive_request_body(httpd_req_t *req, char **body)
 {
-    int total_len = req->content_len;
-    int cur_len = 0;
-    char *buf = ((struct file_server_data *)(req->user_ctx))->scratch;
-    int received = 0;
+    size_t total_len = req->content_len;
+    char *buf = ((struct file_server_data *)req->user_ctx)->scratch;
     if (total_len >= SCRATCH_BUFSIZE) {
-        /* Respond with 500 Internal Server Error */
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
         return ESP_FAIL;
     }
+    size_t cur_len = 0;
     while (cur_len < total_len) {
-        received = httpd_req_recv(req, buf + cur_len, total_len);
+        int
+        received = httpd_req_recv(req, buf + cur_len, total_len - cur_len);
         if (received <= 0) {
-            /* Respond with 500 Internal Server Error */
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
             return ESP_FAIL;
         }
@@ -423,129 +421,119 @@ static esp_err_t send_wifi_handler(httpd_req_t *req)
     }
 
     buf[total_len] = '\0';
-    printf("recived data length is :%d\n",total_len);
-    for (int i = 0; i <total_len ; i++){
-        putchar(buf[i]);
+    *body = buf;
+    return ESP_OK;
+}
+
+static cJSON *read_config_json(httpd_req_t *req, const char *message, const char *const fields[],
+                               size_t field_count){
+    char *body;
+    if(receive_request_body(req, &body) != ESP_OK)
+    {
+        return NULL;
     }
-    printf("\r\nwifi data recived!\r\n");
-    cJSON *root = cJSON_Parse(buf);
+    printf("recived data length is :%u\n%s\r\n%s\r\n", (unsigned int)req->content_len, body,
+           message);
+    cJSON *root = cJSON_Parse(body);
+    bool valid = cJSON_IsObject(root);
+    for (size_t i = 0; valid && i < field_count; ++i)
+    {
+        valid = cJSON_IsString(cJSON_GetObjectItem(root, fields[i]));
+    }
+    if (!valid)
+    {
+        cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid configuration JSON");
+        return NULL;
+    }
+    return root;
+}
+
+static esp_err_t finish_config_request(httpd_req_t *req, cJSON *root)
+{
+    send_beep_event(BEEP_SHORT_500MS);
+    cJSON_Delete(root);
+    httpd_resp_sendstr(req, "Post control value successfully");
+    return ESP_OK;
+}
+
+static esp_err_t send_wifi_handler(httpd_req_t *req)
+{
+    const char *fields[] = {"wifi_name", "wifi_code"};
+    cJSON *root = read_config_json(req, "wifi data recived!", fields, 2);
+    if (root == NULL)
+    {
+        return ESP_FAIL;
+    }
 
     char *ssid = cJSON_GetObjectItem(root, "wifi_name")->valuestring;
     char *psw = cJSON_GetObjectItem(root, "wifi_code")->valuestring;
     ds_nvs_save_wifi_info(ssid,psw);
     print_system_data_wifi_info();
     ds_wifi_send_event(AP_STA_UPDATE);
-    send_beep_event(BEEP_SHORT_500MS);
-    cJSON_Delete(root);
-    httpd_resp_sendstr(req, "Post control value successfully");
-    return ESP_OK;
+    return finish_config_request(req, root);
 }
 
 
 static esp_err_t send_tomato_handler(httpd_req_t *req)
 {
-    int total_len = req->content_len;
-    int cur_len = 0;
-    char *buf = ((struct file_server_data *)(req->user_ctx))->scratch;
-    int received = 0;
-    if (total_len >= SCRATCH_BUFSIZE) {
-        /* Respond with 500 Internal Server Error */
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
+    const
+    char *fields[] = {"work_time", "rest_time", "time_count"
+    };
+    cJSON *root = read_config_json(req, " tomato time data recived!", fields, 3);
+    if (root == NULL)
+    {
         return ESP_FAIL;
     }
-    while (cur_len < total_len) {
-        received = httpd_req_recv(req, buf + cur_len, total_len);
-        if (received <= 0) {
-            /* Respond with 500 Internal Server Error */
-            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-            return ESP_FAIL;
-        }
-        cur_len += received;
-    }
-
-    buf[total_len] = '\0';
-    printf("recived data length is :%d\n",total_len);
-    for (int i = 0; i <total_len ; i++){
-        putchar(buf[i]);
-    }
-    printf("\r\n tomato time data recived!\r\n");
-    cJSON *root = cJSON_Parse(buf);
 
     char *work_time = cJSON_GetObjectItem(root, "work_time")->valuestring;
     char *rest_time = cJSON_GetObjectItem(root, "rest_time")->valuestring;
     char *time_count = cJSON_GetObjectItem(root, "time_count")->valuestring;
     set_system_data_tomato_info(work_time,rest_time,time_count);
-    send_beep_event(BEEP_SHORT_500MS);
-    cJSON_Delete(root);
-    httpd_resp_sendstr(req, "Post control value successfully");
-    return ESP_OK;
+    return finish_config_request(req,root);
 }
-/* Function to start the file server */
 
 static esp_err_t send_city_handler(httpd_req_t *req)
 {
-    int total_len = req->content_len;
-    int cur_len = 0;
-    char *buf = ((struct file_server_data *)(req->user_ctx))->scratch;
-    int received = 0;
-    if (total_len >= SCRATCH_BUFSIZE) {
-        /* Respond with 500 Internal Server Error */
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
+    const
+    char *fields[] ={"city"
+    };
+    cJSON *root = read_config_json(req, " city data recived!", fields, 1);
+    if (root == NULL)
+    {
         return ESP_FAIL;
     }
-    while (cur_len < total_len) {
-        received = httpd_req_recv(req, buf + cur_len, total_len);
-        if (received <= 0) {
-            /* Respond with 500 Internal Server Error */
-            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-            return ESP_FAIL;
-        }
-        cur_len += received;
-    }
-
-    buf[total_len] = '\0';
-    printf("recived data length is :%d\n",total_len);
-    for (int i = 0; i <total_len ; i++){
-        putchar(buf[i]);
-    }
-    printf("\r\n city data recived!\r\n");
-    cJSON *root = cJSON_Parse(buf);
 
     char *city = cJSON_GetObjectItem(root, "city")->valuestring;
     set_system_data_city_info(city);
-    send_beep_event(BEEP_SHORT_500MS);
-    cJSON_Delete(root);
-    httpd_resp_sendstr(req, "Post control value successfully");
-
-    return ESP_OK;
+    return finish_config_request(req, root);
 }
 
 static esp_err_t send_back_handler(httpd_req_t *req)
 {
-    int total_len = req->content_len;
-    int cur_len = 0;
-    char *buf = ((struct file_server_data *)(req->user_ctx))->scratch;
-    int received = 0;
-    if (total_len >= SCRATCH_BUFSIZE) {
-        /* Respond with 500 Internal Server Error */
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
+    char *body;
+    if (receive_request_body(req, &body) != ESP_OK)
+    {
         return ESP_FAIL;
     }
-    while (cur_len < total_len) {
-        received = httpd_req_recv(req, buf + cur_len, total_len);
-        if (received <= 0) {
-            /* Respond with 500 Internal Server Error */
-            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-            return ESP_FAIL;
-        }
-        cur_len += received;
-    }
-    buf[total_len] = '\0';
     printf("\r\n send_back_handler!\r\n");
     httpd_resp_sendstr(req, "Post control back successfully");
     send_beep_event(BEEP_SHORT_500MS);
     ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
     return ESP_OK;
+}
+
+static void register_server_uri(httpd_handle_t server, const char *uri, httpd_method_t method,
+                                esp_err_t (*handler)(httpd_req_t *req),
+                                struct file_server_data *server_data)
+{
+    httpd_uri_t config = {
+        .uri = uri,
+        .method = method,
+        .handler = handler,
+        .user_ctx = server_data,
+    };
+    httpd_register_uri_handler(server, &config);
 }
 
 /* Function to start the file server */
@@ -587,59 +575,12 @@ esp_err_t start_file_server(const char *base_path)
         return ESP_FAIL;
     }
 
-    /* URI handler for getting uploaded files */
-    httpd_uri_t file_download = {
-        .uri       = "/*",  // Match all URIs of type /path/to/file
-        .method    = HTTP_GET,
-        .handler   = download_get_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &file_download);
-
-    /* URI handler for uploading files to server */
-    httpd_uri_t file_upload = {
-        .uri       = "/upload/*",   // Match all URIs of type /upload/path/to/file
-        .method    = HTTP_POST,
-        .handler   = upload_post_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &file_upload);
-
-    //设置数据回调接口
-    httpd_uri_t wifi_data = {
-        .uri       = "/wifi_data",   // Match all URIs of type /delete/path/to/file
-        .method    = HTTP_POST,
-        .handler   = send_wifi_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &wifi_data);
-
-    //设置数据回调接口
-    httpd_uri_t tomato_data = {
-        .uri       = "/tomato_data",   // Match all URIs of type /delete/path/to/file
-        .method    = HTTP_POST,
-        .handler   = send_tomato_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &tomato_data);
-
-    //设置数据回调接口
-    httpd_uri_t city_data = {
-        .uri       = "/city_data",   // Match all URIs of type /delete/path/to/file
-        .method    = HTTP_POST,
-        .handler   = send_city_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &city_data);
-
-    //设置数据回调接口
-    httpd_uri_t back_data = {
-        .uri       = "/back",   // Match all URIs of type /delete/path/to/file
-        .method    = HTTP_POST,
-        .handler   = send_back_handler,
-        .user_ctx  = server_data    // Pass server data as context
-    };
-    httpd_register_uri_handler(server, &back_data);
+    register_server_uri(server, "/*", HTTP_GET, download_get_handler, server_data);
+    register_server_uri(server, "/upload/*", HTTP_POST, upload_post_handler, server_data);
+    register_server_uri(server, "/wifi_data", HTTP_POST, send_wifi_handler, server_data);
+    register_server_uri(server, "/tomato_data", HTTP_POST, send_tomato_handler, server_data);
+    register_server_uri(server, "/city_data", HTTP_POST, send_city_handler, server_data);
+    register_server_uri(server, "/back", HTTP_POST, send_back_handler, server_data);
 
     return ESP_OK;
 }

@@ -9,7 +9,6 @@ typedef enum{
 }HTTP_REQUEST_TYPE_E;
 
 void ds_http_request_init(void);
-void http_time_get(void);
 void ds_http_request_type(HTTP_REQUEST_TYPE_E type);
 void ds_http_request_all(void);
 
