@@ -1,4 +1,4 @@
-#include "ds_data_num.h"
+#include "data_num.h"
 
 
 unsigned char gImage_num_size48[10][192]={

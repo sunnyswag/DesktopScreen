@@ -15,7 +15,7 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
-#include "ds_i2c.h"
+#include "i2c.h"
 
 static esp_err_t execute_i2c_command(i2c_cmd_handle_t cmd, const char *error_message)
 {

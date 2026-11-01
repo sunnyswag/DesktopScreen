@@ -24,12 +24,12 @@
 #include "nvs_flash.h"
 #include "esp_event.h"
 
-#include "ds_spiffs.h"
-#include "ds_system_data.h"
-#include "ds_nvs.h"
-#include "ds_wifi_ap_sta.h"
-#include "ds_pwm.h"
-#include "ds_ui_page_manage.h"
+#include "spiffs.h"
+#include "system_data.h"
+#include "nvs.h"
+#include "wifi_ap_sta.h"
+#include "pwm.h"
+#include "ui_page_manage.h"
 
 
 char user_id[20];

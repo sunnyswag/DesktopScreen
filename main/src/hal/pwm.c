@@ -12,7 +12,7 @@
 #include "driver/mcpwm.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "ds_pwm.h"
+#include "pwm.h"
 
 static QueueHandle_t beep_queue = NULL;
 

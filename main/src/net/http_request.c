@@ -19,10 +19,10 @@
 #include "esp_http_client.h"
 #include "cJSON.h"
 
-#include "ds_http_request.h"
-#include "ds_ui_weatherpage.h"
-#include "ds_nvs.h"
-#include "ds_system_data.h"
+#include "http_request.h"
+#include "ui_weatherpage.h"
+#include "nvs.h"
+#include "system_data.h"
 
 static const char *TAG = "HTTP_CLIENT";
 

@@ -39,7 +39,7 @@
 | 显示 | 第一步用 NuttX `ssd1680` 驱动 + `/dev/fb0`（全刷）；局刷后面再给驱动加 | 先学会 NuttX 的 LCD/fb 框架，再改驱动 |
 | UI | **先保留原来的 Paint/字库/页面代码**，只换底层；LVGL 作为可选的后期项目 | 先把迁移跑通，一次只换一层 |
 | 配置存储（替代 NVS） | LittleFS 挂到 `/data`，配置写成一个 `config.json`（用 cJSON 读写） | 原项目只有 3 组共 7 个 key，没必要做 NVS 兼容层 |
-| 字库 | 原样的二进制，放在 Flash 裸区，板级注册成 MTD，应用用 `pread` 读 | `ds_font.c` 只需要按偏移读，改动最小 |
+| 字库 | 原样的二进制，放在 Flash 裸区，板级注册成 MTD，应用用 `pread` 读 | `font.c` 只需要按偏移读，改动最小 |
 | 定时/并发 | 不用硬件定时器；改用 `poll()` + 超时、POSIX mqueue、`clock_gettime`；系统时间交给 NuttX 时钟 + ntpclient | 原项目的 10ms 定时器 ISR 有 bug（ISR 里调用非 IRAM 函数、往队列发未初始化的结构） |
 | 蜂鸣器 | MCPWM 换成 LEDC（`/dev/pwm0`，GPIO15） | NuttX 的 ESP32 有 LEDC 驱动 |
 | HTTP 配置服务 | 用 BSD socket 自己写一个最小服务器：GET `/` + 4 个 POST JSON 接口 | `netutils/webserver` 不擅长处理 POST JSON，thttpd 依赖重；自己写约 300 行，也正好练手 |
@@ -59,17 +59,17 @@
 
 ### 阶段 A：带着迁移视角把 DesktopScreen 学完（1–3 天）
 
-**已完成**：死代码已在 [DesktopScreen](https://github.com/sunnyswag/DesktopScreen) 的 `main` 分支删除（`50e5eee`），并且已适配 ESP-IDF 5.4.1、能编译通过（`af14cd9`）。粉丝页 `ds_ui_fans.c` 还在，但入口被注释掉，可以跳过。
+**已完成**：死代码已在 [DesktopScreen](https://github.com/sunnyswag/DesktopScreen) 的 `main` 分支删除（`50e5eee`），并且已适配 ESP-IDF 5.4.1、能编译通过（`af14cd9`）。粉丝页 `ui_fans.c` 还在，但入口被注释掉，可以跳过。
 
 **注意行号**：下面以及两份摸底报告里的行号，都是按原始提交 `e18432a` 算的（用 `git show e18432a:main/<路径>` 查看）；main 分支删了代码，行号已经变了，按函数名找即可。
 
 **按这个顺序读**：
 1. `app_main.c:178-261`：初始化顺序，以及 `sleep_mode_init` 的浅睡循环
-2. 触摸链：`ds_gpio.c:42-62` → `ds_timer.c:114-128` → `ds_system_data.c:177-238`（手势识别）→ `ds_ui_page_manage.c:63-124`（切页）
-3. 墨水屏：`ds_screen.c:17-256`（init 序列、全刷、局刷、BUSY）⭐ 迁移时要对照 NuttX 的 `ssd1680.c` 读
-4. 字库：`ds_font.c` 全文 + `ds_paint.c:436-490`（Unicode、4bpp、XBF 格式）
-5. 网络：`ds_wifi_ap_sta.c`、`ds_http_server.c:409-552`（4 个 POST 接口）、`ds_http_request.c:483-494, 117-144`（天气）、`ds_sntp.c`
-6. `ds_nvs.c`：7 个 key
+2. 触摸链：`gpio.c:42-62` → `timer.c:114-128` → `system_data.c:177-238`（手势识别）→ `ui_page_manage.c:63-124`（切页）
+3. 墨水屏：`screen.c:17-256`（init 序列、全刷、局刷、BUSY）⭐ 迁移时要对照 NuttX 的 `ssd1680.c` 读
+4. 字库：`font.c` 全文 + `paint.c:436-490`（Unicode、4bpp、XBF 格式）
+5. 网络：`wifi_ap_sta.c`、`http_server.c:409-552`（4 个 POST 接口）、`http_request.c:483-494, 117-144`（天气）、`sntp.c`
+6. `nvs.c`：7 个 key
 
 **边读边记**：读每个模块时写一句"它在 NuttX 上对应什么"，可以直接对照第 3 节的映射表。
 **验收**：能不看代码画出"触摸 → 手势 → 切页 → 刷屏"和"配网 → 连网 → 拉天气/校时"这两条链。
@@ -135,8 +135,8 @@
 
 ### 阶段 F：上板整合 + 墨水屏局刷（3–5 天）⭐
 
-- 给 `ssd1680.c` 加局部刷新：参照原项目 `ds_screen.c:204-256` 的窗口设置和 RST 脉冲，通过 ioctl 或 `putarea` 加一个 redraw 模式。这一步是学 NuttX 内核驱动开发的好练习
-- 备选：驱动改起来卡住的话，就在用户态用 `/dev/spiN`（`CONFIG_SPI_DRIVER`）+ GPIO 直接照搬 `ds_screen.c`
+- 给 `ssd1680.c` 加局部刷新：参照原项目 `screen.c:204-256` 的窗口设置和 RST 脉冲，通过 ioctl 或 `putarea` 加一个 redraw 模式。这一步是学 NuttX 内核驱动开发的好练习
+- 备选：驱动改起来卡住的话，就在用户态用 `/dev/spiN`（`CONFIG_SPI_DRIVER`）+ GPIO 直接照搬 `screen.c`
 - 刷新节流照原项目来：局刷超过 5 次后做一次全刷
 - 拿原项目当行为基准，逐条比对：开机流程、每个页面、手势、配网、天气、校时、蜂鸣
 
@@ -176,7 +176,7 @@
 | C | 我定好引脚和设备清单后，按规格写 board 目录（bringup、Kconfig、defconfig） | Codex 写，ZCode 审 |
 | D | 我定好 port 接口后，把 paint/font/页面代码机械地搬到新接口上，删掉死代码；写 sim 端的 port 实现 | Codex（搬核心代码）+ ZCode（删死代码、做 sim port） |
 | E | 按我写的路由规格实现最小 HTTP 服务器、配置读写、天气解析 | Codex 写，ZCode 审 |
-| F | 对照 `ds_screen.c` 和 `ssd1680.c` 列出局刷需要改的点；写行为比对清单 | Codex（只读分析）、ZCode（清单） |
+| F | 对照 `screen.c` 和 `ssd1680.c` 列出局刷需要改的点；写行为比对清单 | Codex（只读分析）、ZCode（清单） |
 | 全程 | 遇到疑难 bug 时给第二意见；审查大 diff | Codex |
 
 **省 Claude 额度的做法**：每个阶段开一个新会话，开头说"按 `~/esp/DesktopScreen/docs/PLAN.md` 做阶段 X"。我只读这份计划和相关的摸底章节，然后写规格、派发、验收，不在旧会话里堆上下文。含写入的派发会先给你看规格，你确认后才开始。
@@ -263,4 +263,4 @@
 ### 对阶段的影响
 
 - 阶段 P 的工作量变大（网络也要在 ESP-IDF 上用 socket 重写一遍，不再用 `esp_http_client`/`esp_http_server`），但 NuttX 阶段 E 和 Zephyr 阶段 Z3 会缩成"实现 pal 的 WiFi、键值存储、校时 + 打开 POSIX 配置"。
-- NuttX 阶段 F 的局刷按 6.3 做，原来的"备选：在用户态照搬 ds_screen.c"保留作兜底。
+- NuttX 阶段 F 的局刷按 6.3 做，原来的"备选：在用户态照搬 screen.c"保留作兜底。

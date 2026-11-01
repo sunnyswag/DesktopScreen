@@ -15,10 +15,10 @@
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 
-#include "ds_gpio.h"
+#include "gpio.h"
 
 
-#include "ds_spi.h"
+#include "spi.h"
 
 #define DMA_CHAN    2
 

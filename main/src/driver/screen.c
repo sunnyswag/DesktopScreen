@@ -6,10 +6,10 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
-#include "ds_screen.h"
-#include "ds_gpio.h"
-#include "ds_spi.h"
-#include "ds_data_page.h"
+#include "screen.h"
+#include "gpio.h"
+#include "spi.h"
+#include "data_page.h"
 
 
 //Detection busy

@@ -9,11 +9,11 @@
 
 #include <string.h>
 #include <inttypes.h>
-#include "ds_wifi_ap_sta.h"
-#include "ds_system_data.h"
-#include "ds_http_server.h"
-#include "ds_pwm.h"
-#include "ds_ui_page_manage.h"
+#include "wifi_ap_sta.h"
+#include "system_data.h"
+#include "http_server.h"
+#include "pwm.h"
+#include "ui_page_manage.h"
 
 #define TAG  "app_sta_ap"
 

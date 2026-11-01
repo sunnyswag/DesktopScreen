@@ -1,4 +1,4 @@
-#include "ds_data_page.h"
+#include "data_page.h"
 
 
 const unsigned char gImage_main_page_wifi[] = {

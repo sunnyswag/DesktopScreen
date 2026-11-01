@@ -17,8 +17,7 @@
 #include "nvs.h"
 #include "esp_log.h"
 
-#include "ds_nvs.h"
-#include "ds_system_data.h"
+#include "system_data.h"
 
 static const char *TAG = "ds_nvs";
 

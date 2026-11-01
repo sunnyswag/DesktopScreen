@@ -13,7 +13,7 @@
 #include <fcntl.h>  
 #include <string.h>  
 #include <sys/stat.h> 
-#include "ds_font.h"
+#include "font.h"
 
 
 #define UBYTE   uint8_t

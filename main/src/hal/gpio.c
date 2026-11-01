@@ -8,9 +8,9 @@
 #include "freertos/queue.h"
 #include "driver/gpio.h"
 
-#include "ds_gpio.h"
-#include "ds_ft6336.h"
-#include "ds_system_data.h"
+#include "gpio.h"
+#include "ft6336.h"
+#include "system_data.h"
 
 /**
  * GPIO status:

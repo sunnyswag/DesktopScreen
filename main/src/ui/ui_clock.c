@@ -1,8 +1,8 @@
-#include "ds_ui_clock.h"
-#include "ds_screen.h"
-#include "ds_spi.h"
-#include "ds_data_num.h"
-#include "ds_data_icon.h"
+#include "ui_clock.h"
+#include "screen.h"
+#include "spi.h"
+#include "data_num.h"
+#include "data_icon.h"
 
 enum
 {

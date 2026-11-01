@@ -3,11 +3,11 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
-#include "ds_system_data.h"
-#include "ds_ui_page_manage.h"
-#include "ds_ui_tomatopage.h"
-#include "ds_ui_weatherpage.h"
-#include "ds_nvs.h"
+#include "system_data.h"
+#include "ui_page_manage.h"
+#include "ui_tomatopage.h"
+#include "ui_weatherpage.h"
+#include "nvs.h"
 
 static const char *TAG = "ds_system_data";
 

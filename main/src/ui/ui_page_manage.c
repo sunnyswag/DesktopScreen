@@ -1,14 +1,14 @@
 
-#include "ds_ui_page_manage.h"
-#include "ds_ui_mainpage.h"
-#include "ds_ui_timepage.h"
-#include "ds_ui_wordpage.h"
-#include "ds_screen.h"
-#include "ds_ui_weatherpage.h"
-#include "ds_ui_tomatopage.h"
-#include "ds_http_request.h"
-#include "ds_ui_fans.h"
-#include "ds_pwm.h"
+#include "ui_page_manage.h"
+#include "ui_mainpage.h"
+#include "ui_timepage.h"
+#include "ui_wordpage.h"
+#include "screen.h"
+#include "ui_weatherpage.h"
+#include "ui_tomatopage.h"
+#include "http_request.h"
+#include "ui_fans.h"
+#include "pwm.h"
 
 static const char *TAG = "DS_UI_PAGE_MANAGE";
 

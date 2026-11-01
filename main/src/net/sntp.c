@@ -19,7 +19,7 @@
 #include "esp_sleep.h"
 #include "nvs_flash.h"
 #include "esp_sntp.h"
-#include "ds_system_data.h"
+#include "system_data.h"
 
 static const char *TAG = "ds_sntp";
 

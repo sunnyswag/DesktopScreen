@@ -1,6 +1,6 @@
-#include "ds_paint.h"
-#include "ds_screen.h"
-#include "ds_spi.h"
+#include "paint.h"
+#include "screen.h"
+#include "spi.h"
 
 PAINT Paint;
 

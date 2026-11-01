@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "ds_ft6336.h"
-#include "ds_i2c.h"
-#include "ds_gpio.h"
-#include "ds_screen.h"
-#include "ds_system_data.h"
+#include "ft6336.h"
+#include "i2c.h"
+#include "gpio.h"
+#include "screen.h"
+#include "system_data.h"
 
 //触摸芯片最大5组触摸点，FT6335最大支持双触
 const uint16_t FT6236_TPX_TBL[5]=

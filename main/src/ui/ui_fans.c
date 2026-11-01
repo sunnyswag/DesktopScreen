@@ -5,16 +5,16 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
-#include "ds_screen.h"
-#include "ds_spi.h"
-#include "ds_ui_page_manage.h"
-#include "ds_system_data.h"
-#include "ds_data_num.h"
-#include "ds_data_icon.h"
+#include "screen.h"
+#include "spi.h"
+#include "ui_page_manage.h"
+#include "system_data.h"
+#include "data_num.h"
+#include "data_icon.h"
 
-#include "ds_paint.h"
-#include "ds_data_icon.h"
-#include "ds_ui_mainpage.h"
+#include "paint.h"
+#include "data_icon.h"
+#include "ui_mainpage.h"
 
 
 typedef struct 

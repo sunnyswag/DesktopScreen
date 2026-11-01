@@ -15,11 +15,11 @@
 #include "driver/timer.h"
 #include "soc/soc.h"
 
-#include "ds_timer.h"
-#include "ds_system_data.h"
-#include "ds_ft6336.h"
-#include "ds_ui_timepage.h"
-#include "ds_ui_tomatopage.h"
+#include "timer.h"
+#include "system_data.h"
+#include "ft6336.h"
+#include "ui_timepage.h"
+#include "ui_tomatopage.h"
 
 #define TIMER_DIVIDER         16  //  Hardware timer clock divider
 // ESP32 legacy timer defaults to the 80 MHz APB clock; divider 16 gives 5000 ticks/ms.
