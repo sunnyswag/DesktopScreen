@@ -1,15 +1,13 @@
 
-#include <string.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "sdkconfig.h"
 
 #include "screen.h"
 #include "gpio.h"
 #include "spi.h"
-#include "data_page.h"
 
 // Detection busy
 static void lcd_chkstatus(void)

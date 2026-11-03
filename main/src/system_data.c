@@ -1,12 +1,14 @@
 
-#include "sdkconfig.h"
-#include "esp_system.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "esp_log.h"
 
 #include "system_data.h"
 #include "ui_page_manage.h"
 #include "ui_tomatopage.h"
-#include "ui_weatherpage.h"
 #include "nvs.h"
 
 static const char *TAG = "ds_system_data";

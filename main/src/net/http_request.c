@@ -14,87 +14,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "esp_tls.h"
 #include "esp_http_client.h"
-#include "cJSON.h"
 
 #include "http_request.h"
-#include "ui_weatherpage.h"
-#include "nvs.h"
-#include "system_data.h"
+#include "http_request_rules.h"
 
 static const char *TAG = "HTTP_CLIENT";
 
 QueueHandle_t http_request_event_queue;
-
-static cJSON *parse_json_response(const char *text)
-{
-    // Some endpoints wrap JSON in a JavaScript assignment.
-    const char *json = strchr(text, '{');
-    return json ? cJSON_Parse(json) : NULL;
-}
-
-static void cjson_time_info(char *text)
-{
-    cJSON *root = parse_json_response(text);
-    cJSON *time = cJSON_GetObjectItem(root, "sysTime1");
-    if (cJSON_IsString(time) && strlen(time->valuestring) >= 14)
-    {
-        const char *value = time->valuestring;
-        ESP_LOGI(TAG, "sysTime:%s", value);
-        uint8_t hour = (value[8] - '0') * 10 + value[9] - '0';
-        uint8_t minute = (value[10] - '0') * 10 + value[11] - '0';
-        uint8_t second = (value[12] - '0') * 10 + value[13] - '0';
-        update_system_time(hour, minute, second);
-    }
-    cJSON_Delete(root);
-}
-
-static void update_weather_value(const cJSON *object, const char *key, VALUE_TYPE_T type,
-                                 const char *label)
-{
-    cJSON *value = cJSON_GetObjectItem(object, key);
-    if (cJSON_IsString(value))
-    {
-        ds_ui_weather_set(type, value->valuestring);
-        ESP_LOGI(TAG, "%s:%s", label, value->valuestring);
-    }
-}
-
-void cjson_weather_info(char *text)
-{
-    cJSON *root = parse_json_response(text);
-    cJSON *results = cJSON_GetObjectItem(root, "results");
-    cJSON *item = cJSON_GetArrayItem(results, 0);
-    cJSON *location = cJSON_GetObjectItem(item, "location");
-    cJSON *now = cJSON_GetObjectItem(item, "now");
-    if (cJSON_IsObject(location) && cJSON_IsObject(now))
-    {
-        update_weather_value(location, "name", VALUE_CITY, "city");
-        update_weather_value(now, "text", VALUE_WEATHER, "weather");
-        update_weather_value(now, "code", VALUE_CODE, "code");
-        update_weather_value(now, "temperature", VALUE_TEMP, "temperatur");
-    }
-    cJSON_Delete(root);
-}
-
-static void log_json_string(const cJSON *object, const char *key, const char *label)
-{
-    cJSON *value = cJSON_GetObjectItem(object, key);
-    if (cJSON_IsString(value))
-    {
-        ESP_LOGI(TAG, "%s:%s", label, value->valuestring);
-    }
-}
-
-static void cjson_city_info(char *text)
-{
-    cJSON *root = parse_json_response(text);
-    log_json_string(root, "cname", "name");
-    log_json_string(root, "cid", "cid");
-    cJSON_Delete(root);
-}
 
 typedef struct
 {
@@ -208,23 +138,6 @@ static void perform_http_get(const char *url, void (*parse)(char *text))
     clear_http_response(&response);
 }
 
-void http_weather_get(void)
-{
-    char url[160];
-    char *city = ds_nvs_read_city();
-    int length = snprintf(url, sizeof(url),
-                          "http://api.seniverse.com/v3/weather/now.json"
-                          "?key=SmazqPcltzTft-X3v&location=%s&language=zh-Hans&unit=c",
-                          city ? city : "guangzhou");
-    free(city);
-    if (length < 0 || (size_t)length >= sizeof(url))
-    {
-        ESP_LOGE(TAG, "Weather request URL is too long");
-        return;
-    }
-    perform_http_get(url, cjson_weather_info);
-}
-
 void ds_http_request_type(HTTP_REQUEST_TYPE_E type)
 {
     HTTP_REQUEST_TYPE_E evt;
@@ -242,26 +155,24 @@ static void http_request_task(void *pvParameters)
         xQueueReceive(http_request_event_queue, &evt, portMAX_DELAY);
         ESP_LOGI(TAG, "http_get_task %d", evt);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        switch (evt)
+        const http_request_rule_t *rule = ds_http_request_rule_get(evt);
+        if (rule == NULL)
         {
-        case HTTP_GET_TIME:
-            perform_http_get("http://quan.suning.com/getSysTime.do", cjson_time_info);
-            break;
-        case HTTP_GET_WEATHER:
-            http_weather_get();
-            break;
-        case HTTP_GET_CITY:
-            perform_http_get("http://pv.sohu.com/cityjson?ie=utf-8", cjson_city_info);
-            break;
-        default:
-            break;
+            continue;
         }
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        char url[160];
+        int length = rule->gen_url(url, sizeof(url));
+        if (length < 0 || (size_t)length >= sizeof(url))
+        {
+            ESP_LOGE(TAG, "Failed to generate HTTP request URL for type %d", evt);
+            continue;
+        }
+        perform_http_get(url, rule->parse_func);
     }
 }
 
 void ds_http_request_init(void)
 {
-    http_request_event_queue = xQueueCreate(10, sizeof(HTTP_REQUEST_TYPE_E));
+    http_request_event_queue = xQueueCreate(3, sizeof(HTTP_REQUEST_TYPE_E));
     xTaskCreate(&http_request_task, "http_request_task", 4096, NULL, 5, NULL);
 }

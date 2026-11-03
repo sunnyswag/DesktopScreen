@@ -1,18 +1,8 @@
 
-#include <string.h>
-#include <stdio.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sdkconfig.h"
-
 #include "screen.h"
 #include "ui_mainpage.h"
 #include "system_data.h"
-#include "spi.h"
-
 #include "data_page.h"
-#include "wifi_ap_sta.h"
 
 void ds_screen_display_main()
 {

@@ -1,5 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "paint.h"
-#include "screen.h"
+#include "font.h"
 #include "spi.h"
 
 PAINT Paint;

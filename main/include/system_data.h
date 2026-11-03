@@ -1,9 +1,8 @@
 #ifndef _DS_SYSTEM_DATA_H_
 #define _DS_SYSTEM_DATA_H_
 
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_SETTING_SSID_LEN 32
 #define MAX_SETTING_PSW_LEN 64

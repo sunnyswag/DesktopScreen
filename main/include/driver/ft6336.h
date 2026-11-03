@@ -1,7 +1,7 @@
 #ifndef _DS_FT6336_H_
 #define _DS_FT6336_H_
 
-#include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #define GPIO_RST_LOW 0   // 复位引脚低电平

@@ -1,6 +1,8 @@
 #ifndef _DS_SCREEN_H_
 #define _DS_SCREEN_H_
 
+#include <stdint.h>
+
 void init_screen_interface(void);
 
 void ds_screen_partial_display_bydata(unsigned int x_start, unsigned int y_start,

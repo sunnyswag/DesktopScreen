@@ -1,7 +1,12 @@
 
 
-#include "esp_partition.h"
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
+#include "esp_err.h"
+#include "esp_partition.h"
+
+#include "font.h"
 
 typedef struct
 {

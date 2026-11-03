@@ -8,9 +8,12 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/param.h>
-#include <sys/unistd.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -19,11 +22,10 @@
 
 #include "cJSON.h"
 #include "esp_vfs.h"
-#include "esp_spiffs.h"
 #include "esp_http_server.h"
-#include "nvs_flash.h"
-#include "esp_event.h"
+#include "sdkconfig.h"
 
+#include "http_server.h"
 #include "spiffs.h"
 #include "system_data.h"
 #include "nvs.h"

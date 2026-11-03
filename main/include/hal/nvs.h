@@ -1,6 +1,8 @@
 #ifndef _DS_NVS_H_
 #define _DS_NVS_H_
 
+#include <stdint.h>
+
 typedef enum
 {
     NVS_WIFI_INFO_ERROR = 0,

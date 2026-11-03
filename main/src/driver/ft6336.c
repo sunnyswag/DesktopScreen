@@ -1,12 +1,13 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "ft6336.h"
 #include "i2c.h"
 #include "gpio.h"
-#include "screen.h"
-#include "system_data.h"
 
 // 触摸芯片最大5组触摸点，FT6335最大支持双触
 const uint16_t FT6236_TPX_TBL[5] = {FT_TP1_REG, FT_TP2_REG, FT_TP3_REG, FT_TP4_REG, FT_TP5_REG};

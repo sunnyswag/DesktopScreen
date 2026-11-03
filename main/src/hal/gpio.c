@@ -1,15 +1,14 @@
 
 #include <stdio.h>
 #include <inttypes.h>
-#include <string.h>
-#include <stdlib.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/gpio.h"
+#include "esp_attr.h"
 
 #include "gpio.h"
-#include "ft6336.h"
 #include "system_data.h"
 
 /**

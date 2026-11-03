@@ -1,6 +1,8 @@
 #ifndef _DS_GPIO_H_
 #define _DS_GPIO_H_
 
+#include <stdint.h>
+
 void ds_touch_gpio_init(void);
 void ds_touch_gpio_isr_remove();
 void ds_touch_gpio_isr_add();

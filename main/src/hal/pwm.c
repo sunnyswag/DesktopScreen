@@ -6,11 +6,10 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
 #include "driver/mcpwm.h"
-#include "freertos/task.h"
 #include "freertos/queue.h"
 #include "pwm.h"
 

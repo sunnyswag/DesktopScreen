@@ -6,12 +6,13 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include <stdio.h>
-#include "esp_types.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "driver/periph_ctrl.h"
+#include "esp_attr.h"
+#include "esp_intr_alloc.h"
 #include "driver/timer.h"
 #include "soc/soc.h"
 

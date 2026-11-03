@@ -8,36 +8,33 @@
 */
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
 #include "esp_flash.h"
 #include "esp_chip_info.h"
 #include "nvs_flash.h"
+#include "esp_err.h"
 #include "esp_event.h"
+#include "esp_netif.h"
 
 #include "driver/gpio.h"
 #include "esp_sleep.h"
-#include <time.h>
-#include <sys/time.h>
 #include "esp_timer.h"
 
 #include "ft6336.h"
 #include "screen.h"
-#include "spi.h"
 #include "system_data.h"
 #include "nvs.h"
 #include "http_request.h"
 #include "timer.h"
-#include "spiffs.h"
 #include "ui_timepage.h"
 #include "ui_page_manage.h"
 #include "ui_weatherpage.h"
 #include "ui_wordpage.h"
 #include "ui_tomatopage.h"
 #include "ui_fans.h"
-#include "paint.h"
 #include "wifi_ap_sta.h"
 #include "pwm.h"
 #include "gpio.h"

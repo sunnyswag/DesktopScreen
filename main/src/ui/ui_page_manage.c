@@ -1,14 +1,20 @@
 
+#include <stdbool.h>
+#include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+
 #include "ui_page_manage.h"
 #include "ui_mainpage.h"
 #include "ui_timepage.h"
 #include "ui_wordpage.h"
-#include "screen.h"
 #include "ui_weatherpage.h"
 #include "ui_tomatopage.h"
-#include "http_request.h"
 #include "ui_fans.h"
 #include "pwm.h"
+#include "system_data.h"
 
 static const char *TAG = "DS_UI_PAGE_MANAGE";
 

@@ -3,6 +3,7 @@
 #ifndef _DS_UI_PAGE_MANAGE_H_
 #define _DS_UI_PAGE_MANAGE_H_
 
+#include <stdint.h>
 #include "system_data.h"
 
 #define EPD_2IN9BC_WIDTH 200

@@ -1,22 +1,14 @@
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sdkconfig.h"
+#include <stdlib.h>
 
 #include "screen.h"
-#include "spi.h"
 #include "ui_page_manage.h"
 #include "data_icon.h"
 #include "ui_weatherpage.h"
-#include "system_data.h"
-#include "data_page.h"
-
 #include "data_weather.h"
-#include "data_num.h"
 #include "paint.h"
-#include "ui_mainpage.h"
 
 typedef struct
 {

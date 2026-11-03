@@ -5,6 +5,7 @@ idf_component_register(
 
                                 "src/net/http_server.c"
                                 "src/net/http_request.c"
+                                "src/net/http_request_rules.c"
                                 "src/net/wifi_ap_sta.c"
                                 "src/net/sntp.c"
 

@@ -2,6 +2,7 @@
 #define _DS_I2C_H_
 
 #include "driver/i2c.h"
+#include "sdkconfig.h"
 
 #define _I2C_NUMBER(num) I2C_NUM_##num
 #define I2C_NUMBER(num) _I2C_NUMBER(num)

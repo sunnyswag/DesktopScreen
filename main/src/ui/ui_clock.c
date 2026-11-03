@@ -2,7 +2,6 @@
 #include "screen.h"
 #include "spi.h"
 #include "data_num.h"
-#include "data_icon.h"
 
 enum
 {

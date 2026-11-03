@@ -1,12 +1,7 @@
+#include <stdint.h>
 #include <string.h>
-#include <stdio.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sdkconfig.h"
 
 #include "screen.h"
-#include "spi.h"
 #include "ui_clock.h"
 #include "ui_page_manage.h"
 #include "ui_timepage.h"

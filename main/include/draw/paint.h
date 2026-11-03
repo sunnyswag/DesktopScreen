@@ -3,17 +3,6 @@
 #define _DS_PAINT_H_
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <iconv.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-#include "font.h"
 
 #define UBYTE uint8_t
 #define UWORD uint16_t
