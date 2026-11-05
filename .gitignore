@@ -5,3 +5,6 @@ build
 .repo/
 .west/
 vendor/
+
+# tools/perf 评估脚本的输出
+perf-out/

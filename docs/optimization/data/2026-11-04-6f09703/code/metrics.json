@@ -1,0 +1,24 @@
+{
+  "source": "提交 6f09703bd2ff464dff15b2d5db1f5525e513cd46",
+  "code": {
+    "source_files": 55,
+    "physical_lines": 5254,
+    "nloc": 3966,
+    "comment_lines": 612,
+    "functions": 180,
+    "avg_ccn": 2.95,
+    "max_ccn": 29,
+    "funcs_ccn_gt_10": 8,
+    "funcs_ccn_gt_15": 5,
+    "avg_func_nloc": 16.8,
+    "max_func_nloc": 86,
+    "funcs_nloc_gt_60": 7,
+    "duplicate_rate_pct": 0.9,
+    "duplicate_blocks": 1,
+    "printf_calls": 37,
+    "esp_log_calls": 71,
+    "data_dir_files": 4,
+    "data_dir_lines": 1703,
+    "data_dir_bytes": 123234
+  }
+}

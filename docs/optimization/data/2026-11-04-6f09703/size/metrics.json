@@ -1,0 +1,27 @@
+{
+  "source": "提交 6f09703bd2ff464dff15b2d5db1f5525e513cd46",
+  "size": {
+    "app_bin_bytes": 987440,
+    "app_partition_bytes": 1048576,
+    "app_free_bytes": 61136,
+    "app_used_pct": 94.2,
+    "bootloader_bytes": 25984,
+    "bootloader_free_bytes": 2688,
+    "flash_code_used_bytes": 684616,
+    "flash_data_used_bytes": 178352,
+    "iram_used_bytes": 103658,
+    "iram_total_bytes": 131072,
+    "dram_used_bytes": 55360,
+    "dram_total_bytes": 180736,
+    "dram_bss_bytes": 34696,
+    "dram_data_bytes": 20664,
+    "merged_string_pool_bytes": 90715,
+    "flash_unallocated_bytes": 667648,
+    "main_flash_bytes": 49680,
+    "main_dram_bytes": 20099,
+    "gimage_flash_bytes": 21976,
+    "gimage_dram_bytes": 9152,
+    "warnings_total": 5,
+    "warnings_main": 3
+  }
+}

@@ -1,0 +1,5 @@
+# 测量固件在被测 sdkconfig 基础上追加的配置（由 device_probe.sh 写入隔离副本，不改仓库里的 sdkconfig）
+# 任务运行时间统计，计数源默认是 esp_timer（微秒），计数器 32 位，约 71 分钟回绕一次，解析脚本按回绕处理
+CONFIG_FREERTOS_USE_TRACE_FACILITY=y
+CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y
+CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID=y
