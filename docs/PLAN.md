@@ -1,6 +1,6 @@
 # DesktopScreen 多平台移植路径（ESP-IDF / NuttX / Zephyr）
 
-> 依据：[survey-desktopscreen.md](survey-desktopscreen.md)（ZCode 摸底原项目）、[survey-nuttx.md](survey-nuttx.md)（Codex 摸底 NuttX）、[survey-zephyr.md](survey-zephyr.md)（Codex 摸底 Zephyr v4.5.0），关键结论已抽查原文核实。
+> 依据：[survey-desktopscreen.md](survey/survey-desktopscreen.md)（ZCode 摸底原项目）、[survey-nuttx.md](survey/survey-nuttx.md)（Codex 摸底 NuttX）、[survey-zephyr.md](survey/survey-zephyr.md)（Codex 摸底 Zephyr v4.5.0），关键结论已抽查原文核实。
 > 制定：2026-10-31；同日修订：从"单独迁移到 NuttX"改为"本仓库通过平台抽象层同时适配多个系统"
 
 ## 修订：仓库与依赖管理（优先于下文中与之冲突的内容）
