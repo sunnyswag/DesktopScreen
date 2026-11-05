@@ -549,9 +549,7 @@ static esp_err_t send_back_handler(httpd_req_t *req)
     {
         return ESP_FAIL;
     }
-    printf("\r\n send_back_handler!\r\n");
-    httpd_resp_sendstr(req, "Post control back successfully");
-    send_beep_event(BEEP_SHORT_500MS);
+    finish_config_request(req, NULL);
     ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
     return ESP_OK;
 }
