@@ -465,7 +465,17 @@ static esp_err_t receive_request_body(httpd_req_t *req, char **body)
     return ESP_OK;
 }
 
-static cJSON *read_config_json(httpd_req_t *req, const char *message, const char *const fields[],
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
+/* A required string field and where to store its value. The stored pointer
+ * points into the parsed JSON, so it stays valid until the root is deleted. */
+typedef struct
+{
+    const char *name;
+    char **value;
+} config_field_t;
+
+static cJSON *read_config_json(httpd_req_t *req, const char *message, const config_field_t fields[],
                                size_t field_count)
 {
     char *body;
@@ -479,7 +489,9 @@ static cJSON *read_config_json(httpd_req_t *req, const char *message, const char
     bool valid = cJSON_IsObject(root);
     for (size_t i = 0; valid && i < field_count; ++i)
     {
-        valid = cJSON_IsString(cJSON_GetObjectItem(root, fields[i]));
+        const cJSON *item = cJSON_GetObjectItem(root, fields[i].name);
+        valid = cJSON_IsString(item);
+        *fields[i].value = valid ? item->valuestring : NULL;
     }
     if (!valid)
     {
@@ -500,14 +512,16 @@ static esp_err_t finish_config_request(httpd_req_t *req, cJSON *root)
 
 static esp_err_t send_wifi_handler(httpd_req_t *req)
 {
-    const char *fields[] = {"wifi_name", "wifi_code"};
-    cJSON *root = read_config_json(req, "wifi data recived!", fields, 2);
+    char *ssid, *psw;
+    const config_field_t fields[] = {
+        {"wifi_name", &ssid},
+        {"wifi_code", &psw},
+    };
+    cJSON *root = read_config_json(req, "wifi data recived!", fields, ARRAY_SIZE(fields));
     if (root == NULL)
     {
         return ESP_FAIL;
     }
-    char *ssid = cJSON_GetObjectItem(root, "wifi_name")->valuestring;
-    char *psw = cJSON_GetObjectItem(root, "wifi_code")->valuestring;
     ds_nvs_save_wifi_info(ssid, psw);
     print_system_data_wifi_info();
     ds_wifi_send_event(AP_STA_UPDATE);
@@ -516,28 +530,32 @@ static esp_err_t send_wifi_handler(httpd_req_t *req)
 
 static esp_err_t send_tomato_handler(httpd_req_t *req)
 {
-    const char *fields[] = {"work_time", "rest_time", "time_count"};
-    cJSON *root = read_config_json(req, " tomato time data recived!", fields, 3);
+    char *work_time, *rest_time, *time_count;
+    const config_field_t fields[] = {
+        {"work_time", &work_time},
+        {"rest_time", &rest_time},
+        {"time_count", &time_count},
+    };
+    cJSON *root = read_config_json(req, " tomato time data recived!", fields, ARRAY_SIZE(fields));
     if (root == NULL)
     {
         return ESP_FAIL;
     }
-    char *work_time = cJSON_GetObjectItem(root, "work_time")->valuestring;
-    char *rest_time = cJSON_GetObjectItem(root, "rest_time")->valuestring;
-    char *time_count = cJSON_GetObjectItem(root, "time_count")->valuestring;
     set_system_data_tomato_info(work_time, rest_time, time_count);
     return finish_config_request(req, root);
 }
 
 static esp_err_t send_city_handler(httpd_req_t *req)
 {
-    const char *fields[] = {"city"};
-    cJSON *root = read_config_json(req, " city data recived!", fields, 1);
+    char *city;
+    const config_field_t fields[] = {
+        {"city", &city},
+    };
+    cJSON *root = read_config_json(req, " city data recived!", fields, ARRAY_SIZE(fields));
     if (root == NULL)
     {
         return ESP_FAIL;
     }
-    char *city = cJSON_GetObjectItem(root, "city")->valuestring;
     set_system_data_city_info(city);
     return finish_config_request(req, root);
 }
