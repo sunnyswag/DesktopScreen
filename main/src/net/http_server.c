@@ -549,9 +549,8 @@ static esp_err_t send_back_handler(httpd_req_t *req)
     {
         return ESP_FAIL;
     }
-    finish_config_request(req, NULL);
     ds_ui_page_manage_send_action(PAGE_TYPE_MEMU);
-    return ESP_OK;
+    return finish_config_request(req, NULL);
 }
 
 static void register_server_uri(httpd_handle_t server, const char *uri, httpd_method_t method,
