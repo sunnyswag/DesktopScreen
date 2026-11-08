@@ -12,8 +12,6 @@ idf_component_register(
                                 "src/driver/ft6336.c"
                                 "src/driver/screen.c"
 
-                                "src/fs/spiffs.c"
-
                                 "src/system_data.c"
 
                                 "src/hal/timer.c"
@@ -48,7 +46,6 @@ idf_component_register(
                                 "./include/hal"
                                 "./include/net"
                                 "./include/driver"
-                                "./include/fs"
                                 "./include/ui"
 
                         EMBED_FILES 
